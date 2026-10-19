@@ -1,0 +1,134 @@
+/* ==========================================================================
+   WealthTrack Global Styles
+   Tailwind v4 — CSS-first configuration
+   ========================================================================== */
+
+@import "tailwindcss";
+
+/* --------------------------------------------------------------------------
+   Theme — semantic CSS variables injected by root layout via themeToCss.ts
+   @theme maps Tailwind utility names to those variables.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  /* Colors */
+  --color-background:         var(--background);
+  --color-surface:            var(--surface);
+  --color-surface-muted:      var(--surface-muted);
+  --color-surface-hover:      var(--surface-hover);
+  --color-surface-active:     var(--surface-active);
+  --color-border:             var(--border);
+  --color-border-strong:      var(--border-strong);
+  --color-text:               var(--text);
+  --color-text-muted:         var(--text-muted);
+  --color-text-disabled:      var(--text-disabled);
+  --color-text-inverse:       var(--text-inverse);
+  --color-primary:            var(--primary);
+  --color-primary-hover:      var(--primary-hover);
+  --color-primary-active:     var(--primary-active);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-muted:      var(--primary-muted);
+  --color-danger:             var(--danger);
+  --color-danger-hover:       var(--danger-hover);
+  --color-danger-foreground:  var(--danger-foreground);
+  --color-danger-muted:       var(--danger-muted);
+  --color-success:            var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted:      var(--success-muted);
+  --color-warning:            var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted:      var(--warning-muted);
+  --color-info:               var(--info);
+  --color-info-foreground:    var(--info-foreground);
+  --color-info-muted:         var(--info-muted);
+  --color-gain:               var(--gain);
+  --color-gain-foreground:    var(--gain-foreground);
+  --color-gain-muted:         var(--gain-muted);
+  --color-loss:               var(--loss);
+  --color-loss-foreground:    var(--loss-foreground);
+  --color-loss-muted:         var(--loss-muted);
+  --color-neutral-change:     var(--neutral-change);
+  --color-focus-ring:         var(--focus-ring);
+  --color-overlay:            var(--overlay);
+
+  /* Asset class colors */
+  --color-asset-equity:        var(--asset-equity);
+  --color-asset-crypto:        var(--asset-crypto);
+  --color-asset-fixed-income:  var(--asset-fixed-income);
+  --color-asset-real-estate:   var(--asset-real-estate);
+  --color-asset-cash:          var(--asset-cash);
+
+  /* Control heights: generates h-control-sm, h-control-md, h-control-lg */
+  --height-control-sm: 2rem;
+  --height-control-md: 2.5rem;
+  --height-control-lg: 3rem;
+
+  /* Icon sizes: generates size-icon-sm etc */
+  --width-icon-sm:  1rem;
+  --height-icon-sm: 1rem;
+  --width-icon-md:  1.25rem;
+  --height-icon-md: 1.25rem;
+  --width-icon-lg:  1.5rem;
+  --height-icon-lg: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Base reset
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Focus ring — token-based, visible for keyboard users
+   -------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   Print rules
+   -------------------------------------------------------------------------- */
+@media print {
+  /* Hide interactive chrome */
+  nav, aside, .no-print {
+    display: none !important;
+  }
+
+  /* Force white background for print */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Disclaimer always visible in print */
+  .disclaimer {
+    display: block !important;
+  }
+
+  /* Page breaks */
+  .page-break-before { page-break-before: always; }
+  .page-break-after  { page-break-after: always; }
+  .no-page-break     { page-break-inside: avoid; }
+}

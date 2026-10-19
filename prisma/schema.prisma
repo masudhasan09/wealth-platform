@@ -1,0 +1,322 @@
+// This is the Prisma schema for the WealthTrack platform.
+// Supports SQLite for local dev; change provider to "postgresql" for production.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// AUTH
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+
+  // Auth.js session tables (added in Phase 1)
+  // sessions   Session[]
+}
+
+// ---------------------------------------------------------------------------
+// ACCOUNTS
+// ---------------------------------------------------------------------------
+
+/// Financial account owned by a user. Transactions are always scoped to an account.
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  name        String
+  type        AccountType
+  currency    String      @default("USD")
+  description String?
+  closedAt    DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  liabilities  Liability[]
+
+  @@index([userId])
+}
+
+enum AccountType {
+  brokerage
+  retirement_401k
+  ira
+  roth_ira
+  hsa
+  bank
+  crypto_wallet
+  property
+}
+
+// ---------------------------------------------------------------------------
+// INSTRUMENTS
+// ---------------------------------------------------------------------------
+
+/// A tradable or trackable instrument (stock, ETF, crypto, bond, property, cash).
+model Instrument {
+  id          String     @id @default(cuid())
+  assetClass  AssetClass
+  symbol      String?    // ticker or coin ID; null for property/cash
+  name        String
+  currency    String     @default("USD")
+  /// JSON field: { isin?: string, cusip?: string, figi?: string, coinId?: string }
+  identifiers String     @default("{}") // stored as JSON string for SQLite compatibility
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  transactions  Transaction[]
+  prices        Price[]
+  valuationMarks ValuationMark[]
+  bondDetails   BondDetails?
+  propertyDetails PropertyDetails?
+  liabilities   Liability[]
+
+  @@index([symbol])
+  @@index([assetClass])
+}
+
+enum AssetClass {
+  equity
+  crypto
+  fixed_income
+  real_estate
+  cash
+}
+
+// ---------------------------------------------------------------------------
+// BOND DETAILS
+// ---------------------------------------------------------------------------
+
+/// Additional fields for fixed-income instruments.
+model BondDetails {
+  id             String       @id @default(cuid())
+  instrumentId   String       @unique
+  faceValue      String       // stored as Decimal-serialized string
+  couponRate     String       // annual rate, e.g. "0.04" = 4%
+  couponFrequency CouponFrequency
+  maturityDate   DateTime
+  issueDate      DateTime?
+  dayCount       DayCount     @default(actual_360)
+  callDate       DateTime?
+  callPrice      String?      // Decimal string
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+}
+
+enum CouponFrequency {
+  annual
+  semi_annual
+  quarterly
+  monthly
+  zero_coupon
+}
+
+enum DayCount {
+  actual_360
+  actual_365
+  actual_actual
+  thirty_360
+}
+
+// ---------------------------------------------------------------------------
+// PROPERTY DETAILS
+// ---------------------------------------------------------------------------
+
+/// Additional fields for real-estate instruments.
+model PropertyDetails {
+  id            String   @id @default(cuid())
+  instrumentId  String   @unique
+  address       String
+  purchasePrice String   // Decimal string
+  purchaseDate  DateTime
+  ownershipPct  String   @default("1") // Decimal string, 0–1
+  propertyType  String   @default("residential")
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// TRANSACTIONS (immutable ledger)
+// ---------------------------------------------------------------------------
+
+/// Immutable transaction record. Holdings are derived from these.
+/// Corrections are made by voiding and entering a new transaction.
+model Transaction {
+  id           String          @id @default(cuid())
+  accountId    String
+  instrumentId String
+  type         TransactionType
+  date         DateTime
+  /// Quantity of shares/units/coins. Decimal string.
+  quantity     String          @default("0")
+  /// Price per unit at transaction time. Decimal string.
+  price        String          @default("0")
+  /// Total notional amount (may differ from quantity*price for fees/adjustments). Decimal string.
+  amount       String          @default("0")
+  /// Fee/commission paid. Decimal string.
+  fee          String          @default("0")
+  /// If set, this transaction is voided (soft delete).
+  voidedAt     DateTime?
+  voidedReason String?
+  note         String?
+  externalId   String?         // for import deduplication
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  account    Account    @relation(fields: [accountId], references: [id])
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+  taxLots    TaxLot[]
+
+  @@index([accountId])
+  @@index([instrumentId])
+  @@index([date])
+  @@index([externalId])
+}
+
+enum TransactionType {
+  // Equity / crypto
+  buy
+  sell
+  dividend
+  split
+  // Crypto-specific
+  transfer_in
+  transfer_out
+  crypto_fee
+  // Fixed income
+  coupon
+  maturity
+  // Real estate
+  rental_income
+  property_expense
+  // Cash
+  deposit
+  withdrawal
+  interest
+  // Generic
+  reinvestment
+  return_of_capital
+  journal
+}
+
+// ---------------------------------------------------------------------------
+// PRICES
+// ---------------------------------------------------------------------------
+
+/// Market price snapshot. Cached so the app works when APIs are down.
+model Price {
+  id           String        @id @default(cuid())
+  instrumentId String
+  date         DateTime
+  /// Price value. Decimal string.
+  value        String
+  source       PriceSource
+  asOf         DateTime
+  method       ValuationMethod
+  createdAt    DateTime      @default(now())
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+
+  @@unique([instrumentId, date, source])
+  @@index([instrumentId, date])
+}
+
+enum PriceSource {
+  finnhub
+  twelve_data
+  coingecko
+  fred
+  manual
+  import
+}
+
+enum ValuationMethod {
+  market
+  model
+  manual
+}
+
+// ---------------------------------------------------------------------------
+// VALUATION MARKS (for property and manual values)
+// ---------------------------------------------------------------------------
+
+/// Point-in-time valuation for assets without market prices (property, manual).
+model ValuationMark {
+  id           String          @id @default(cuid())
+  instrumentId String
+  date         DateTime
+  /// Value. Decimal string.
+  value        String
+  method       ValuationMethod
+  note         String?
+  createdAt    DateTime        @default(now())
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id])
+
+  @@index([instrumentId, date])
+}
+
+// ---------------------------------------------------------------------------
+// LIABILITIES
+// ---------------------------------------------------------------------------
+
+/// Liabilities (mortgages, loans) linked to an account and optionally an instrument.
+model Liability {
+  id                 String    @id @default(cuid())
+  accountId          String
+  linkedInstrumentId String?
+  name               String
+  /// Outstanding principal. Decimal string.
+  principal          String
+  /// Annual interest rate (e.g. "0.065" = 6.5%). Decimal string.
+  rate               String
+  termMonths         Int
+  startDate          DateTime
+  currency           String    @default("USD")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  account    Account     @relation(fields: [accountId], references: [id])
+  instrument Instrument? @relation(fields: [linkedInstrumentId], references: [id])
+
+  @@index([accountId])
+}
+
+// ---------------------------------------------------------------------------
+// TAX LOTS
+// ---------------------------------------------------------------------------
+
+/// Tax lot opened by a buy/transfer-in transaction. Used for FIFO cost-basis.
+/// Quantity is updated (reduced) as shares are sold; fully consumed lots are kept
+/// for audit. Never delete — void the originating transaction instead.
+model TaxLot {
+  id                  String    @id @default(cuid())
+  transactionId       String
+  /// Remaining open quantity. Decimal string.
+  quantity            String
+  /// Cost basis per unit at open. Decimal string.
+  costBasisPerUnit    String
+  openDate            DateTime
+  /// Date the lot was fully closed (null if still open). Derived.
+  closedAt            DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+
+  @@index([transactionId])
+}

@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+prisma/dev.db*
+*.db
+
+# Env files — never commit real secrets
+.env
+.env.local
+.env.production
+
+# Build outputs
+dist/
+build/
+
+# Testing
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
