@@ -29,6 +29,10 @@ export interface ComputedHolding {
   quantity: string;
   averageCost: string;
   totalCost: string;
+  /** Ticker symbol, e.g. "AAPL". Populated when enriched from DB. */
+  symbol?: string;
+  /** Asset class, e.g. "equity". Populated when enriched from DB. */
+  assetClass?: string;
 }
 
 export interface ComputeHoldingsOptions {
