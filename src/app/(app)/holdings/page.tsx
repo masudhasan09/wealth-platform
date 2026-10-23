@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
-import { computeHoldings, computeCashBalances } from '@/lib/finance';
+import { computeHoldings, computeCashBalances, InsufficientHoldingsError } from '@/lib/finance';
 import { DashboardLayout } from '@/components/templates';
 import { HoldingsClient } from './HoldingsClient';
 import type { HoldingViewModel, AccountViewModel } from '@/lib/view-models';
+
+export const dynamic = 'force-dynamic';
 
 export default async function HoldingsPage() {
   const session = await auth();
@@ -30,7 +32,21 @@ export default async function HoldingsPage() {
     voidedAt: tx.voidedAt,
   }));
 
-  const computedHoldingsList = computeHoldings(financeTx);
+  let computedHoldingsList: ReturnType<typeof computeHoldings> = [];
+  let ledgerWarning: string | null = null;
+
+  try {
+    computedHoldingsList = computeHoldings(financeTx, { strict: true });
+  } catch (err) {
+    if (err instanceof InsufficientHoldingsError) {
+      ledgerWarning =
+        'A sell transaction in your ledger history exceeds available purchased shares (e.g., an earlier purchase was voided). Please review your transaction ledger to correct this.';
+      computedHoldingsList = computeHoldings(financeTx, { strict: false });
+    } else {
+      throw err;
+    }
+  }
+
   const cashBalances = computeCashBalances(financeTx);
 
   // Map to lookup accounts and instruments
@@ -76,6 +92,7 @@ export default async function HoldingsPage() {
       <HoldingsClient
         holdings={holdingViewModels}
         accounts={accountViewModels}
+        ledgerWarning={ledgerWarning}
       />
     </DashboardLayout>
   );

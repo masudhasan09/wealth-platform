@@ -6,6 +6,8 @@ import { DashboardLayout } from '@/components/templates';
 import { AccountsClient } from './AccountsClient';
 import type { AccountViewModel } from '@/lib/view-models';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AccountsPage() {
   const session = await auth();
   if (!session?.user?.id) {

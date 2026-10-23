@@ -31,6 +31,10 @@ export interface ComputedHolding {
   totalCost: string;
 }
 
+export interface ComputeHoldingsOptions {
+  strict?: boolean;
+}
+
 export class InsufficientHoldingsError extends Error {
   constructor(message = 'Insufficient holdings to execute sell transaction') {
     super(message);
@@ -43,11 +47,15 @@ export class InsufficientHoldingsError extends Error {
  * from a list of transactions using pure Decimal.js arithmetic.
  *
  * Ignores voided transactions.
- * Throws InsufficientHoldingsError if a sell exceeds current holding quantity.
+ * Throws InsufficientHoldingsError if a sell exceeds current holding quantity and options.strict is true (default).
+ * If options.strict is false, clamps to zero to avoid crashing read-only views.
  */
 export function computeHoldings(
-  transactions: FinanceTransaction[]
+  transactions: FinanceTransaction[],
+  options?: ComputeHoldingsOptions
 ): ComputedHolding[] {
+  const strict = options?.strict ?? true;
+
   // 1. Filter out voided transactions and sort chronologically
   const activeTx = transactions
     .filter((tx) => !tx.voidedAt)
@@ -98,9 +106,20 @@ export function computeHoldings(
       });
     } else if (tx.type === 'sell') {
       if (txQty.greaterThan(current.quantity)) {
-        throw new InsufficientHoldingsError(
-          `Cannot sell ${txQty.toString()} units. Account ${tx.accountId} only holds ${current.quantity.toString()} units of instrument ${tx.instrumentId}.`
-        );
+        if (strict) {
+          throw new InsufficientHoldingsError(
+            `Cannot sell ${txQty.toString()} units. Account ${tx.accountId} only holds ${current.quantity.toString()} units of instrument ${tx.instrumentId}.`
+          );
+        }
+        // Non-strict fallback: clamp holding to 0
+        holdingsMap.set(key, {
+          accountId: tx.accountId,
+          instrumentId: tx.instrumentId,
+          quantity: new Decimal(0),
+          totalCost: new Decimal(0),
+          averageCost: new Decimal(0),
+        });
+        continue;
       }
 
       const newQty = current.quantity.minus(txQty);
@@ -218,4 +237,3 @@ export function computeCashBalances(
 
   return result;
 }
-

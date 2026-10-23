@@ -8,14 +8,20 @@ import { Text } from '@/components/atoms/Text';
 import { Button } from '@/components/atoms/Button';
 import { MoneyText } from '@/components/atoms/MoneyText';
 import { CardHeader } from '@/components/molecules/CardHeader';
+import { Alert } from '@/components/molecules/Alert';
 import type { HoldingViewModel, AccountViewModel } from '@/lib/view-models';
 
 export interface HoldingsClientProps {
   holdings: HoldingViewModel[];
   accounts: AccountViewModel[];
+  ledgerWarning?: string | null;
 }
 
-export function HoldingsClient({ holdings, accounts }: HoldingsClientProps) {
+export function HoldingsClient({
+  holdings,
+  accounts,
+  ledgerWarning,
+}: HoldingsClientProps) {
   return (
     <div className="space-y-8">
       <div>
@@ -24,6 +30,12 @@ export function HoldingsClient({ holdings, accounts }: HoldingsClientProps) {
           Active positions and cash balances derived dynamically from transaction history
         </Text>
       </div>
+
+      {ledgerWarning && (
+        <Alert tone="warning" title="Ledger Discrepancy Detected">
+          {ledgerWarning}
+        </Alert>
+      )}
 
       {/* Cash Balances Summary */}
       <div className="rounded-xl border border-border bg-surface p-6 shadow-xs space-y-4">

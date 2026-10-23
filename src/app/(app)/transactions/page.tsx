@@ -5,6 +5,8 @@ import { DashboardLayout } from '@/components/templates';
 import { TransactionsClient } from './TransactionsClient';
 import type { TransactionViewModel } from '@/lib/view-models';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TransactionsPage() {
   const session = await auth();
   if (!session?.user?.id) {

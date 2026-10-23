@@ -2,6 +2,7 @@ import { prisma } from './client';
 import { findOrCreateInstrument } from './instruments';
 import { computeHoldings, InsufficientHoldingsError } from '@/lib/finance';
 import type { TransactionInput } from '@/lib/validation';
+import type { TransactionType } from '@prisma/client';
 
 export async function getTransactionsByUserId(
   userId: string,
@@ -48,47 +49,36 @@ export async function createTransaction(userId: string, data: TransactionInput) 
 
   // 3. For sells: pre-validate that the user holds enough quantity
   if (data.type === 'sell') {
-    // Fetch all active transactions for this account and instrument
     const existingTx = await prisma.transaction.findMany({
       where: {
         accountId: data.accountId,
         instrumentId: instrument.id,
+        voidedAt: null,
       },
     });
 
-    const candidateTx = [
-      ...existingTx.map((tx) => ({
-        id: tx.id,
-        accountId: tx.accountId,
-        instrumentId: tx.instrumentId,
-        type: tx.type,
-        quantity: tx.quantity,
-        price: tx.price,
-        amount: tx.amount,
-        fee: tx.fee,
-        date: tx.date,
-        voidedAt: tx.voidedAt,
-      })),
-      {
-        id: 'candidate',
-        accountId: data.accountId,
-        instrumentId: instrument.id,
-        type: data.type,
-        quantity: data.quantity || '0',
-        price: data.price || '0',
-        amount: data.amount || '0',
-        fee: data.fee || '0',
-        date: new Date(data.date),
-      },
-    ];
+    const activeTx = existingTx.map((tx) => ({
+      id: tx.id,
+      accountId: tx.accountId,
+      instrumentId: tx.instrumentId,
+      type: tx.type,
+      quantity: tx.quantity,
+      price: tx.price,
+      amount: tx.amount,
+      fee: tx.fee,
+      date: tx.date,
+      voidedAt: tx.voidedAt,
+    }));
 
-    try {
-      computeHoldings(candidateTx);
-    } catch (err) {
-      if (err instanceof InsufficientHoldingsError) {
-        throw new Error(err.message);
-      }
-      throw err;
+    const currentHoldings = computeHoldings(activeTx, { strict: false });
+    const holding = currentHoldings.find((h) => h.instrumentId === instrument.id);
+    const availableQty = holding ? parseFloat(holding.quantity) : 0;
+    const requestedQty = parseFloat(data.quantity || '0');
+
+    if (requestedQty > availableQty) {
+      throw new Error(
+        `Cannot sell ${data.quantity} units of ${instrument.symbol || 'this asset'}. Account "${account.name}" currently holds ${availableQty} units.`
+      );
     }
   }
 
@@ -107,7 +97,7 @@ export async function createTransaction(userId: string, data: TransactionInput) 
     data: {
       accountId: data.accountId,
       instrumentId: instrument.id,
-      type: data.type,
+      type: data.type as TransactionType,
       date: new Date(data.date),
       quantity: data.quantity || '0',
       price: data.price || '0',
@@ -141,6 +131,40 @@ export async function voidTransaction(
 
   if (transaction.voidedAt) {
     throw new Error('Transaction is already voided');
+  }
+
+  // If voiding a BUY transaction, ensure subsequent sells do not become invalid
+  if (transaction.type === 'buy') {
+    const allAccountTx = await prisma.transaction.findMany({
+      where: {
+        accountId: transaction.accountId,
+        instrumentId: transaction.instrumentId,
+      },
+    });
+
+    const candidateTx = allAccountTx.map((tx) => ({
+      id: tx.id,
+      accountId: tx.accountId,
+      instrumentId: tx.instrumentId,
+      type: tx.type,
+      quantity: tx.quantity,
+      price: tx.price,
+      amount: tx.amount,
+      fee: tx.fee,
+      date: tx.date,
+      voidedAt: tx.id === id ? new Date() : tx.voidedAt,
+    }));
+
+    try {
+      computeHoldings(candidateTx, { strict: true });
+    } catch (err) {
+      if (err instanceof InsufficientHoldingsError) {
+        throw new Error(
+          'Cannot void this buy transaction because subsequent sell transactions depend on these shares. Please void the dependent sell transactions first.'
+        );
+      }
+      throw err;
+    }
   }
 
   return prisma.transaction.update({

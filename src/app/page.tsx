@@ -9,6 +9,8 @@ import { StatCard } from '@/components/molecules/StatCard';
 import { DisclaimerNotice } from '@/components/molecules/DisclaimerNotice';
 import { DashboardLayout } from '@/components/templates';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const session = await auth();
 

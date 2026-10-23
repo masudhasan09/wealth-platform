@@ -121,6 +121,38 @@ describe('Finance Module: computeHoldings', () => {
     expect(() => computeHoldings(transactions)).toThrow(InsufficientHoldingsError);
   });
 
+  it('safely clamps holdings to 0 when strict is false to avoid crashing read-only views', () => {
+    const transactions: FinanceTransaction[] = [
+      {
+        id: 'tx-1',
+        accountId: 'acc-1',
+        instrumentId: 'inst-aapl',
+        type: 'buy',
+        quantity: '10',
+        price: '100',
+        amount: '1000',
+        fee: '0',
+        date: new Date('2024-01-01'),
+        voidedAt: new Date('2024-01-02'), // Voided buy
+      },
+      {
+        id: 'tx-2',
+        accountId: 'acc-1',
+        instrumentId: 'inst-aapl',
+        type: 'sell',
+        quantity: '10',
+        price: '120',
+        amount: '1200',
+        fee: '0',
+        date: new Date('2024-01-03'), // Orphaned sell
+      },
+    ];
+
+    expect(() => computeHoldings(transactions, { strict: false })).not.toThrow();
+    const holdings = computeHoldings(transactions, { strict: false });
+    expect(holdings.length).toBe(0);
+  });
+
   it('ignores voided transactions in holdings calculation', () => {
     const transactions: FinanceTransaction[] = [
       {
