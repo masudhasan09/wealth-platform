@@ -5,7 +5,7 @@ import { getTransactionsByUserId } from '@/lib/db/transactions';
 import { computeHoldings, computeCashBalances } from '@/lib/finance/holdings';
 import { valuePortfolio, computeNetWorth } from '@/lib/finance/valuation';
 import { getPrices } from '@/lib/services/price.service';
-import { saveSnapshot, getSnapshots, getLatestSnapshot, needsSnapshot } from '@/lib/db/net-worth';
+import { saveSnapshot, getSnapshots } from '@/lib/db/net-worth';
 import { prisma } from '@/lib/db/client';
 import type { SnapshotRow } from '@/lib/db/net-worth';
 import type { ValuedPosition, NetWorthResult } from '@/lib/finance/valuation';
