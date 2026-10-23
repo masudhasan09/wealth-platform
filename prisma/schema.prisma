@@ -208,6 +208,7 @@ enum TransactionType {
   withdrawal
   interest
   // Generic
+  fee
   reinvestment
   return_of_capital
   journal

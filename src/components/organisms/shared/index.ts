@@ -1,1 +1,1 @@
-// src/components/organisms/shared barrel placeholder
+export * from './DataTable';

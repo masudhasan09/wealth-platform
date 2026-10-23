@@ -56,6 +56,15 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 
 | Component | Level | Purpose | Key Props | Used By |
 |---|---|---|---|---|
+| `DataTable` | Organism | Reusable table with typed column definitions, empty states, and token styling | `columns`, `data`, `keyExtractor`, `emptyTitle`, `emptyAction`, `footer` | TransactionTable, HoldingsTable |
+| `LoginForm` | Organism | User login form with client validation and error alerts | `onSubmit`, `isLoading`, `serverError` | LoginPage |
+| `RegisterForm` | Organism | Registration form with validation and password criteria | `onSubmit`, `isLoading`, `serverError` | RegisterPage |
+| `AccountForm` | Organism | Account creation and update form with type dropdown | `onSubmit`, `initialData`, `isLoading`, `serverError`, `onCancel` | AccountsClient |
+| `AccountList` | Organism | Grid of user account cards displaying types and cash balances | `accounts`, `onAddAccount`, `onSelectAccount` | AccountsClient, Dashboard |
+| `TransactionForm` | Organism | Transaction entry form for buy/sell/deposit/withdrawal/dividend/interest/fee | `accounts`, `onSubmit`, `isLoading`, `serverError`, `onCancel` | TransactionsClient |
+| `TransactionTable` | Organism | Ledger table for transactions with colored badges and void actions | `transactions`, `onVoidTransaction`, `emptyAction` | TransactionsClient |
+| `VoidTransactionDialog`| Organism | Confirmation modal for soft-voiding ledger transactions | `transaction`, `open`, `onConfirm`, `onCancel`, `isLoading` | TransactionsClient |
+| `HoldingsTable` | Organism | Dynamically computed positions table with cost basis and asset classes | `holdings`, `emptyAction` | HoldingsClient |
 | `Sidebar` | Organism | Desktop navigation drawer with links and user info | `currentPath`, `user` | DashboardLayout |
 | `Header` | Organism | Top application bar with search and freshness indicator | `lastUpdated`, `source`, `onSearch` | DashboardLayout |
 | `Navbar` | Organism | Top navigation bar with logo and action slots | `actions` | Marketing / alternative layouts |

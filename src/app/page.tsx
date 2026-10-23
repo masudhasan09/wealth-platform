@@ -1,16 +1,29 @@
 import React from 'react';
 import Link from 'next/link';
+import { auth } from '@/auth';
 import { Button } from '@/components/atoms/Button';
 import { Heading } from '@/components/atoms/Heading';
 import { Text } from '@/components/atoms/Text';
 import { CardHeader } from '@/components/molecules/CardHeader';
 import { StatCard } from '@/components/molecules/StatCard';
 import { DisclaimerNotice } from '@/components/molecules/DisclaimerNotice';
-import { DashboardLayout } from '@/components/templates/DashboardLayout';
+import { DashboardLayout } from '@/components/templates';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth();
+
   return (
-    <DashboardLayout currentPath="/dashboard">
+    <DashboardLayout
+      currentPath="/dashboard"
+      user={
+        session?.user
+          ? {
+              name: session.user.name || 'User',
+              email: session.user.email || '',
+            }
+          : undefined
+      }
+    >
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -21,14 +34,25 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/dev/components">
-              <Button variant="secondary">
-                Component Gallery
-              </Button>
-            </Link>
-            <Button variant="primary">
-              Add Asset
-            </Button>
+            {session?.user ? (
+              <>
+                <Link href="/transactions">
+                  <Button variant="secondary">View Ledger</Button>
+                </Link>
+                <Link href="/accounts">
+                  <Button variant="primary">Manage Accounts</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="secondary">Sign In</Button>
+                </Link>
+                <Link href="/register">
+                  <Button variant="primary">Create Account</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
@@ -60,20 +84,60 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Section */}
-        <div className="p-6 rounded-lg border border-border bg-surface">
-          <CardHeader
-            title="Design System Status (Phase 0)"
-            subtitle="Atomic Design architecture & Centralized Design Tokens"
-          />
-          <div className="mt-4 space-y-4">
-            <Text variant="body">
-              All 17 atoms and 18 molecules are built, verified with Vitest tests, and wired to centralized design tokens.
-            </Text>
-            <div className="flex gap-4">
-              <Link href="/dev/components">
-                <Button variant="primary" size="md">
-                  View All Atoms & Molecules
+        {/* Quick Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between">
+            <div>
+              <CardHeader
+                title="Accounts"
+                subtitle="Brokerage, retirement, bank, crypto, and real estate"
+              />
+              <Text variant="caption" tone="muted" className="mt-2">
+                Manage all accounts and cash balances across multiple custodians.
+              </Text>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <Link href="/accounts">
+                <Button variant="secondary" size="sm" className="w-full">
+                  Go to Accounts →
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between">
+            <div>
+              <CardHeader
+                title="Transaction Ledger"
+                subtitle="Double-entry immutable audit trail"
+              />
+              <Text variant="caption" tone="muted" className="mt-2">
+                Record buys, sells, deposits, withdrawals, dividends, and interest with voiding capability.
+              </Text>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <Link href="/transactions">
+                <Button variant="secondary" size="sm" className="w-full">
+                  Go to Ledger →
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between">
+            <div>
+              <CardHeader
+                title="Holdings & Cost Basis"
+                subtitle="Dynamically derived positions"
+              />
+              <Text variant="caption" tone="muted" className="mt-2">
+                View average cost basis, total cost, and uninvested cash per account.
+              </Text>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <Link href="/holdings">
+                <Button variant="secondary" size="sm" className="w-full">
+                  Go to Holdings →
                 </Button>
               </Link>
             </div>

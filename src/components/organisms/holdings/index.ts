@@ -1,1 +1,1 @@
-// src/components/organisms/holdings barrel placeholder
+export * from './HoldingsTable';

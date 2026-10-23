@@ -5,13 +5,12 @@
  * Run: npx tsx prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client';
-import * as crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-/** Minimal password hash for demo only — Phase 1 adds bcrypt */
 function demoHash(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return bcrypt.hashSync(password, 10);
 }
 
 async function main() {
@@ -22,7 +21,9 @@ async function main() {
   // -------------------------------------------------------------------------
   const user = await prisma.user.upsert({
     where: { email: 'demo@wealthtrack.dev' },
-    update: {},
+    update: {
+      passwordHash: demoHash('demo1234'),
+    },
     create: {
       email: 'demo@wealthtrack.dev',
       name: 'Demo User',

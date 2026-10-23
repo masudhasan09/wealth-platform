@@ -1,1 +1,3 @@
-// src/components/organisms/transactions barrel placeholder
+export * from './TransactionForm';
+export * from './TransactionTable';
+export * from './VoidTransactionDialog';

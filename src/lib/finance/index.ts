@@ -1,1 +1,1 @@
-// src/lib/finance barrel placeholder
+export * from './holdings';

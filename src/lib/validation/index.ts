@@ -1,1 +1,3 @@
-// src/lib/validation barrel placeholder
+export * from './auth';
+export * from './account';
+export * from './transaction';
