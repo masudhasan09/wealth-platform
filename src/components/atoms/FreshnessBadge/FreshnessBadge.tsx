@@ -36,3 +36,4 @@ export function FreshnessBadge({ variant, label, className }: FreshnessBadgeProp
     </Badge>
   );
 }
+

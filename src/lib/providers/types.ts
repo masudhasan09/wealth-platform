@@ -44,3 +44,4 @@ export interface PriceProvider {
    */
   fetchQuotes?(symbols: string[]): Promise<PriceMap>;
 }
+

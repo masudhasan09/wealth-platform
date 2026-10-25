@@ -26,3 +26,4 @@ export class ManualPriceProvider implements PriceProvider {
     };
   }
 }
+

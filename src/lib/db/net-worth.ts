@@ -87,3 +87,4 @@ export async function needsSnapshot(userId: string): Promise<boolean> {
   });
   return count === 0;
 }
+

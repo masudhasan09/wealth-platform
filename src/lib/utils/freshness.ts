@@ -53,3 +53,4 @@ export function getFreshnessVariant(
   if (ageDay >= 7) return 'very-stale';
   return 'stale';
 }
+

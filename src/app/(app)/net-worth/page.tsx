@@ -38,3 +38,4 @@ export default async function NetWorthPage() {
     </DashboardLayout>
   );
 }
+

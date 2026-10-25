@@ -24,3 +24,4 @@ describe('FreshnessBadge', () => {
     expect(screen.getByText('3 days old')).toBeInTheDocument();
   });
 });
+

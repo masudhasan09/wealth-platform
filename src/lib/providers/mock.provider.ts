@@ -54,3 +54,4 @@ export class MockPriceProvider implements PriceProvider {
     return map;
   }
 }
+

@@ -187,3 +187,4 @@ describe('computeNetWorth', () => {
     expect(result.total).toBe('800.00');
   });
 });
+

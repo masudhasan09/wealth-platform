@@ -151,3 +151,4 @@ export function PricesClient({ instruments }: PricesClientProps) {
     </div>
   );
 }
+
