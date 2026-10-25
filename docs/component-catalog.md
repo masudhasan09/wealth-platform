@@ -65,6 +65,11 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `TransactionTable` | Organism | Ledger table for transactions with colored badges and void actions | `transactions`, `onVoidTransaction`, `emptyAction` | TransactionsClient |
 | `VoidTransactionDialog`| Organism | Confirmation modal for soft-voiding ledger transactions | `transaction`, `open`, `onConfirm`, `onCancel`, `isLoading` | TransactionsClient |
 | `HoldingsTable` | Organism | Dynamically computed positions table with cost basis and asset classes | `holdings`, `emptyAction` | HoldingsClient |
+| `PriceForm` | Organism | Manual price setting form for any instrument | `defaultTicker`, `onSubmit`, `isLoading`, `serverError` | PricesClient |
+| `BondForm` | Organism | Bond instrument entry form (face value, coupon rate, frequency, day-count, maturity) | `onSubmit`, `isLoading`, `serverError`, `onCancel` | FixedIncomeClient |
+| `BondDetailsPanel` | Organism | Inspector panel with StatCards for accrued interest, current yield, and YTM | `bond`, `currentPrice`, `asOfDate` | FixedIncomeClient |
+| `CouponScheduleTable` | Organism | Data table displaying projected coupon payment cash flows and status | `bond`, `onRecordCoupon` | FixedIncomeClient |
+| `MaturityLadder` | Organism | Maturity bucket breakdown chart and table across tenors (<1y, 1-3y, 3-5y, 5-10y, 10y+) | `bonds`, `asOfDate` | FixedIncomeClient |
 | `Sidebar` | Organism | Desktop navigation drawer with links and user info | `currentPath`, `user` | DashboardLayout |
 | `Header` | Organism | Top application bar with search and freshness indicator | `lastUpdated`, `source`, `onSearch` | DashboardLayout |
 | `Navbar` | Organism | Top navigation bar with logo and action slots | `actions` | Marketing / alternative layouts |

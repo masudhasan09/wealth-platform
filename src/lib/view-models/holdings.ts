@@ -10,5 +10,7 @@ export interface HoldingViewModel {
   totalCost: string;
   currentPrice?: string;
   marketValue?: string;
+  valuationMethod?: 'market' | 'model' | 'manual' | string;
+  freshnessVariant?: 'live' | 'delayed' | 'manual' | 'stale' | 'very-stale';
+  freshnessLabel?: string;
 }
-

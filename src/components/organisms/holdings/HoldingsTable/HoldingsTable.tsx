@@ -3,6 +3,8 @@
 import React from 'react';
 import { DataTable, type ColumnDef } from '@/components/organisms/shared/DataTable';
 import { MoneyText } from '@/components/atoms/MoneyText';
+import { Badge } from '@/components/atoms/Badge';
+import { FreshnessBadge } from '@/components/atoms/FreshnessBadge';
 import { AssetClassTag, type AssetClassType } from '@/components/molecules/AssetClassTag';
 import type { HoldingViewModel } from '@/lib/view-models';
 
@@ -65,6 +67,33 @@ export function HoldingsTable({ holdings, emptyAction }: HoldingsTableProps) {
         </span>
       ),
     },
+    {
+      header: 'Valuation Method',
+      id: 'valuationMethod',
+      align: 'center',
+      render: (h) => {
+        if (h.freshnessVariant) {
+          return (
+            <div className="flex items-center justify-center gap-1.5">
+              <FreshnessBadge
+                variant={h.freshnessVariant}
+                label={h.freshnessLabel}
+              />
+              {h.valuationMethod && (
+                <Badge tone="neutral" className="uppercase text-xs font-mono">
+                  {h.valuationMethod}
+                </Badge>
+              )}
+            </div>
+          );
+        }
+        return (
+          <Badge tone="neutral" className="uppercase text-xs font-mono">
+            {h.valuationMethod || 'Cost Basis'}
+          </Badge>
+        );
+      },
+    },
   ];
 
   return (
@@ -78,4 +107,3 @@ export function HoldingsTable({ holdings, emptyAction }: HoldingsTableProps) {
     />
   );
 }
-

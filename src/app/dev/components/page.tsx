@@ -47,6 +47,9 @@ import {
   AccountList,
   TransactionTable,
   HoldingsTable,
+  BondDetailsPanel,
+  CouponScheduleTable,
+  MaturityLadder,
 } from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
@@ -518,6 +521,72 @@ export default function ComponentGalleryPage() {
                 voidedReason: 'Duplicate transaction recorded by error',
               },
             ]}
+          />
+        </div>
+      </section>
+
+      {/* Phase 3: Fixed Income Organisms */}
+      <section className="space-y-4">
+        <Heading level="h2">Fixed Income Organisms (Phase 3)</Heading>
+        <div className="space-y-6">
+          <BondDetailsPanel
+            bond={{
+              symbol: 'UST-10Y',
+              name: 'US Treasury 4.5% 2034',
+              faceValue: '1000',
+              couponRate: '0.045',
+              couponFrequency: 'semi_annual',
+              maturityDate: '2034-01-01T00:00:00.000Z',
+              issueDate: '2024-01-01T00:00:00.000Z',
+              dayCount: 'actual_actual',
+              subType: 'treasury_note',
+            }}
+            currentPrice="980.00"
+          />
+
+          <CouponScheduleTable
+            bond={{
+              symbol: 'UST-2Y',
+              name: 'US Treasury 4.0% 2026',
+              faceValue: '1000',
+              couponRate: '0.04',
+              couponFrequency: 'semi_annual',
+              maturityDate: '2026-01-01T00:00:00.000Z',
+              issueDate: '2024-01-01T00:00:00.000Z',
+            }}
+          />
+
+          <MaturityLadder
+            bonds={[
+              {
+                symbol: 'UST-6M',
+                name: 'US Treasury Bill 6M',
+                maturityDate: '2024-06-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '980',
+                quantity: '5',
+                couponRate: '0.00',
+              },
+              {
+                symbol: 'UST-2Y',
+                name: 'US Treasury Note 2Y',
+                maturityDate: '2025-06-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '990',
+                quantity: '10',
+                couponRate: '0.045',
+              },
+              {
+                symbol: 'UST-10Y',
+                name: 'US Treasury Bond 10Y',
+                maturityDate: '2034-01-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '1000',
+                quantity: '2',
+                couponRate: '0.04',
+              },
+            ]}
+            asOfDate="2024-01-01T00:00:00.000Z"
           />
         </div>
       </section>

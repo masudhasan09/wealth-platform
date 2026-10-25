@@ -8,6 +8,12 @@ export const transactionTypes = [
   'dividend',
   'fee',
   'interest',
+  // Phase 3 additions:
+  'transfer_in',
+  'transfer_out',
+  'crypto_fee',
+  'coupon',
+  'maturity',
 ] as const;
 
 export const transactionSchema = z
@@ -38,21 +44,21 @@ export const transactionSchema = z
   })
   .refine(
     (data) => {
-      // For buy or sell, symbol is required
-      if (['buy', 'sell'].includes(data.type)) {
+      // For trades, transfers, coupons, or maturities: symbol is required
+      if (['buy', 'sell', 'transfer_in', 'transfer_out', 'coupon', 'maturity', 'crypto_fee'].includes(data.type)) {
         return !!data.symbol && data.symbol.length > 0;
       }
       return true;
     },
     {
-      message: 'Symbol is required for buy and sell transactions',
+      message: 'Asset symbol is required for this transaction type',
       path: ['symbol'],
     }
   )
   .refine(
     (data) => {
-      // For buy or sell, quantity must be > 0
-      if (['buy', 'sell'].includes(data.type)) {
+      // Quantity must be > 0 for unit-based transactions
+      if (['buy', 'sell', 'transfer_in', 'transfer_out', 'maturity'].includes(data.type)) {
         const qty = parseFloat(data.quantity || '0');
         return qty > 0;
       }
@@ -79,8 +85,8 @@ export const transactionSchema = z
   )
   .refine(
     (data) => {
-      // For deposit, withdrawal, dividend, interest, amount must be > 0
-      if (['deposit', 'withdrawal', 'dividend', 'interest'].includes(data.type)) {
+      // For cash/income flows: amount must be > 0
+      if (['deposit', 'withdrawal', 'dividend', 'interest', 'coupon'].includes(data.type)) {
         const amt = parseFloat(data.amount || '0');
         return amt > 0;
       }
@@ -100,4 +106,3 @@ export const voidTransactionSchema = z.object({
 });
 
 export type VoidTransactionInput = z.infer<typeof voidTransactionSchema>;
-

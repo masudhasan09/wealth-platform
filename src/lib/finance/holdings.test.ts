@@ -307,5 +307,101 @@ describe('Finance Module: computeCashBalances', () => {
     const balances = computeCashBalances(transactions);
     expect(balances['acc-1']).toBe('3753');
   });
+
+  it('handles crypto transfers and crypto fees with high precision', () => {
+    const transactions: FinanceTransaction[] = [
+      {
+        id: 'tx-btc-1',
+        accountId: 'acc-crypto',
+        instrumentId: 'inst-btc',
+        type: 'transfer_in',
+        quantity: '0.75000000',
+        price: '60000',
+        amount: '45000',
+        fee: '0',
+        date: new Date('2024-01-01'),
+      },
+      {
+        id: 'tx-btc-2',
+        accountId: 'acc-crypto',
+        instrumentId: 'inst-btc',
+        type: 'crypto_fee',
+        quantity: '0.00050000',
+        price: '0',
+        amount: '0',
+        fee: '0',
+        date: new Date('2024-01-02'),
+      },
+      {
+        id: 'tx-btc-3',
+        accountId: 'acc-crypto',
+        instrumentId: 'inst-btc',
+        type: 'transfer_out',
+        quantity: '0.24950000',
+        price: '65000',
+        amount: '16217.50',
+        fee: '0',
+        date: new Date('2024-01-03'),
+      },
+    ];
+
+    const holdings = computeHoldings(transactions);
+    const btc = holdings.find((h) => h.instrumentId === 'inst-btc');
+    expect(btc).toBeDefined();
+    // 0.75000000 - 0.00050000 - 0.24950000 = 0.50000000
+    expect(btc?.quantity).toBe('0.5');
+    expect(btc?.averageCost).toBe('60000');
+  });
+
+  it('handles bond coupon and bond maturity in cash balances and holdings', () => {
+    const transactions: FinanceTransaction[] = [
+      {
+        id: 'tx-bond-buy',
+        accountId: 'acc-fixed',
+        instrumentId: 'inst-ust-10y',
+        type: 'buy',
+        quantity: '10',
+        price: '980',
+        amount: '9800',
+        fee: '10',
+        date: new Date('2024-01-01'),
+      },
+      {
+        id: 'tx-coupon-1',
+        accountId: 'acc-fixed',
+        instrumentId: 'inst-ust-10y',
+        type: 'coupon',
+        quantity: '0',
+        price: '0',
+        amount: '200',
+        fee: '0',
+        date: new Date('2024-06-01'),
+      },
+      {
+        id: 'tx-maturity',
+        accountId: 'acc-fixed',
+        instrumentId: 'inst-ust-10y',
+        type: 'maturity',
+        quantity: '10',
+        price: '1000',
+        amount: '10000',
+        fee: '5',
+        date: new Date('2024-12-31'),
+      },
+    ];
+
+    const holdings = computeHoldings(transactions);
+    // Bond has matured and all 10 units redeemed -> holding should be 0 (omitted)
+    const bondHolding = holdings.find((h) => h.instrumentId === 'inst-ust-10y');
+    expect(bondHolding).toBeUndefined();
+
+    // Cash balance:
+    // - 9810 (buy 10*980 + 10 fee)
+    // + 200 (coupon)
+    // + 9995 (maturity 10000 - 5 fee)
+    // = +385
+    const cash = computeCashBalances(transactions);
+    expect(cash['acc-fixed']).toBe('385');
+  });
 });
 

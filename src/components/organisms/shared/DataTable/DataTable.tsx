@@ -61,7 +61,7 @@ export function DataTable<T>({
                     : 'text-left';
                 return (
                   <th
-                    key={col.id || String(col.accessorKey) || idx}
+                    key={col.id || (col.accessorKey ? String(col.accessorKey) : `col-${idx}`)}
                     scope="col"
                     className={cn(
                       'px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap',
@@ -97,7 +97,7 @@ export function DataTable<T>({
 
                   return (
                     <td
-                      key={col.id || String(col.accessorKey) || colIdx}
+                      key={col.id || (col.accessorKey ? String(col.accessorKey) : `cell-${colIdx}`)}
                       className={cn('px-4 py-3 whitespace-nowrap', alignClass, col.className)}
                     >
                       {cellValue}

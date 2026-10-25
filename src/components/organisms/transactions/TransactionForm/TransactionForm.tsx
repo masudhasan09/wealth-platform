@@ -13,6 +13,8 @@ import { transactionSchema, type TransactionInput } from '@/lib/validation';
 export interface TransactionFormProps {
   accounts: { id: string; name: string }[];
   defaultAccountId?: string;
+  defaultType?: TransactionInput['type'];
+  defaultSymbol?: string;
   onSubmit: (values: TransactionInput) => Promise<{ error?: string } | void> | void;
   isLoading?: boolean;
   serverError?: string | null;
@@ -22,6 +24,8 @@ export interface TransactionFormProps {
 export function TransactionForm({
   accounts,
   defaultAccountId,
+  defaultType = 'buy',
+  defaultSymbol = '',
   onSubmit,
   isLoading = false,
   serverError,
@@ -30,8 +34,8 @@ export function TransactionForm({
   const [accountId, setAccountId] = useState(
     defaultAccountId || (accounts.length > 0 ? accounts[0].id : '')
   );
-  const [type, setType] = useState<TransactionInput['type']>('buy');
-  const [symbol, setSymbol] = useState('');
+  const [type, setType] = useState<TransactionInput['type']>(defaultType);
+  const [symbol, setSymbol] = useState(defaultSymbol);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
@@ -41,9 +45,17 @@ export function TransactionForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  const isTrade = ['buy', 'sell'].includes(type);
+  const isTransfer = ['transfer_in', 'transfer_out'].includes(type);
+  const isCoupon = type === 'coupon';
+  const isMaturity = type === 'maturity';
+  const isCryptoFee = type === 'crypto_fee';
+  const isUnitBased = isTrade || isTransfer || isMaturity;
+  const requiresSymbol = isTrade || isTransfer || isCoupon || isMaturity || isCryptoFee;
+
   const handleQuantityChange = (val: string) => {
     setQuantity(val);
-    if (['buy', 'sell'].includes(type) && val && price) {
+    if ((isTrade || isMaturity) && val && price) {
       const q = parseFloat(val);
       const p = parseFloat(price);
       if (!isNaN(q) && !isNaN(p)) {
@@ -54,7 +66,7 @@ export function TransactionForm({
 
   const handlePriceChange = (val: string) => {
     setPrice(val);
-    if (['buy', 'sell'].includes(type) && quantity && val) {
+    if ((isTrade || isMaturity) && quantity && val) {
       const q = parseFloat(quantity);
       const p = parseFloat(val);
       if (!isNaN(q) && !isNaN(p)) {
@@ -62,8 +74,6 @@ export function TransactionForm({
       }
     }
   };
-
-  const isTrade = ['buy', 'sell'].includes(type);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,16 +87,25 @@ export function TransactionForm({
       fee: fee || '0',
     };
 
-    if (isTrade) {
+    if (requiresSymbol) {
       payload.symbol = symbol.toUpperCase().trim();
-      payload.quantity = quantity;
-      payload.price = price;
-      payload.amount = amount;
     } else {
-      payload.amount = amount;
+      payload.symbol = undefined;
+    }
+
+    if (isUnitBased) {
+      payload.quantity = quantity || '0';
+      payload.price = price || '0';
+      payload.amount = amount || '0';
+    } else if (isCryptoFee) {
+      payload.quantity = quantity || '0';
+      payload.amount = amount || '0';
+      payload.price = '0';
+    } else {
+      // Cash-based transactions (deposit, withdrawal, dividend, interest, coupon)
+      payload.amount = amount || '0';
       payload.quantity = '0';
       payload.price = '0';
-      payload.symbol = undefined;
     }
 
     const result = transactionSchema.safeParse(payload);
@@ -100,9 +119,14 @@ export function TransactionForm({
       return;
     }
 
+    setSubmitting(true);
     try {
-      setSubmitting(true);
-      await onSubmit(result.data);
+      const res = await onSubmit(result.data);
+      if (res && res.error) {
+        setErrors({ form: res.error });
+      }
+    } catch {
+      setErrors({ form: 'An unexpected error occurred while saving the transaction.' });
     } finally {
       setSubmitting(false);
     }
@@ -111,10 +135,10 @@ export function TransactionForm({
   const busy = isLoading || submitting;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {serverError && (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+      {(serverError || errors.form) && (
         <Alert tone="danger" title="Error recording transaction">
-          {serverError}
+          {serverError || errors.form}
         </Alert>
       )}
 
@@ -155,13 +179,26 @@ export function TransactionForm({
             onChange={(e) => setType(e.target.value as TransactionInput['type'])}
             disabled={busy}
           >
-            <option value="buy">Buy Asset</option>
-            <option value="sell">Sell Asset</option>
-            <option value="deposit">Deposit Cash</option>
-            <option value="withdrawal">Withdrawal Cash</option>
-            <option value="dividend">Dividend Income</option>
-            <option value="interest">Interest Income</option>
-            <option value="fee">Fee / Expense</option>
+            <optgroup label="Trading">
+              <option value="buy">Buy Asset (Equity / Crypto / Bond)</option>
+              <option value="sell">Sell Asset</option>
+            </optgroup>
+            <optgroup label="Cash & Income">
+              <option value="deposit">Deposit Cash</option>
+              <option value="withdrawal">Withdrawal Cash</option>
+              <option value="dividend">Dividend Income</option>
+              <option value="interest">Interest Income</option>
+              <option value="fee">Fee / Expense</option>
+            </optgroup>
+            <optgroup label="Digital Assets (Crypto)">
+              <option value="transfer_in">Crypto Transfer In</option>
+              <option value="transfer_out">Crypto Transfer Out</option>
+              <option value="crypto_fee">Crypto Network Gas Fee</option>
+            </optgroup>
+            <optgroup label="Fixed Income (Bonds)">
+              <option value="coupon">Bond Coupon Payment</option>
+              <option value="maturity">Bond Principal Maturity</option>
+            </optgroup>
           </Select>
         </FormField>
       </div>
@@ -183,17 +220,21 @@ export function TransactionForm({
           />
         </FormField>
 
-        {isTrade ? (
+        {requiresSymbol ? (
           <FormField
             label="Asset Symbol / Ticker"
             htmlFor="tx-symbol"
-            hint="e.g. AAPL, MSFT, BTC"
+            hint={
+              isCoupon || isMaturity
+                ? 'e.g. UST-10Y, US-TNOTE'
+                : 'e.g. AAPL, BTC, SOL, SPY'
+            }
             error={errors.symbol}
             required
           >
             <Input
               id="tx-symbol"
-              placeholder="e.g. AAPL"
+              placeholder={isCoupon || isMaturity ? 'e.g. UST-10Y' : 'e.g. AAPL, BTC'}
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
               disabled={busy}
@@ -218,19 +259,19 @@ export function TransactionForm({
         )}
       </div>
 
-      {isTrade && (
+      {/* Asset-Class Specific Field Groups */}
+      {isUnitBased && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <FormField
-            label="Quantity"
+            label={isMaturity ? 'Redeemed Quantity' : 'Quantity'}
             htmlFor="tx-qty"
             error={errors.quantity}
             required
           >
             <Input
               id="tx-qty"
-              type="number"
-              step="any"
-              min="0"
+              type="text"
+              inputMode="decimal"
               placeholder="0.00"
               value={quantity}
               onChange={(e) => handleQuantityChange(e.target.value)}
@@ -240,10 +281,10 @@ export function TransactionForm({
           </FormField>
 
           <FormField
-            label="Unit Price"
+            label={isMaturity ? 'Redemption Price' : 'Unit Price'}
             htmlFor="tx-price"
             error={errors.price}
-            required
+            required={isTrade}
           >
             <CurrencyInput
               id="tx-price"
@@ -256,17 +297,57 @@ export function TransactionForm({
 
           <FormField
             label="Total Amount"
-            htmlFor="tx-total-amount"
+            htmlFor="tx-amount-total"
             error={errors.amount}
+            required
           >
             <CurrencyInput
-              id="tx-total-amount"
+              id="tx-amount-total"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={busy}
               error={!!errors.amount}
             />
           </FormField>
+        </div>
+      )}
+
+      {(isCoupon || isCryptoFee) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            label={isCoupon ? 'Coupon Income Amount' : 'Fee Amount (USD)'}
+            htmlFor="tx-amount-cf"
+            error={errors.amount}
+            required={isCoupon}
+          >
+            <CurrencyInput
+              id="tx-amount-cf"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              disabled={busy}
+              error={!!errors.amount}
+            />
+          </FormField>
+
+          {isCryptoFee && (
+            <FormField
+              label="Fee in Crypto Units"
+              htmlFor="tx-crypto-qty"
+              hint="e.g. 0.0005 BTC gas fee"
+              error={errors.quantity}
+            >
+              <Input
+                id="tx-crypto-qty"
+                type="text"
+                inputMode="decimal"
+                placeholder="0.00000000"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                disabled={busy}
+                error={!!errors.quantity}
+              />
+            </FormField>
+          )}
         </div>
       )}
 
@@ -285,14 +366,11 @@ export function TransactionForm({
           />
         </FormField>
 
-        <FormField
-          label="Notes (Optional)"
-          htmlFor="tx-note"
-        >
+        <FormField label="Notes (Optional)" htmlFor="tx-note">
           <Textarea
             id="tx-note"
-            rows={1}
-            placeholder="e.g. Dividend reinvestment or tax lot details"
+            rows={2}
+            placeholder="e.g. Tax lot details, bond series, or network tx hash"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             disabled={busy}
@@ -300,11 +378,11 @@ export function TransactionForm({
         </FormField>
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex justify-end gap-3 pt-3 border-t border-border">
         {onCancel && (
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             onClick={onCancel}
             disabled={busy}
           >
@@ -315,7 +393,7 @@ export function TransactionForm({
           type="submit"
           variant="primary"
           loading={busy}
-          disabled={busy}
+          disabled={busy || accounts.length === 0}
         >
           Record Transaction
         </Button>

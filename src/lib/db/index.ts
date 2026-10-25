@@ -3,3 +3,6 @@ export * from './users';
 export * from './accounts';
 export * from './instruments';
 export * from './transactions';
+export * from './prices';
+export * from './net-worth';
+export * from './bonds';

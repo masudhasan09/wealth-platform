@@ -78,7 +78,14 @@ export function computeHoldings(
   >();
 
   for (const tx of activeTx) {
-    if (tx.type !== 'buy' && tx.type !== 'sell') {
+    if (
+      tx.type !== 'buy' &&
+      tx.type !== 'sell' &&
+      tx.type !== 'transfer_in' &&
+      tx.type !== 'transfer_out' &&
+      tx.type !== 'crypto_fee' &&
+      tx.type !== 'maturity'
+    ) {
       continue;
     }
 
@@ -95,8 +102,8 @@ export function computeHoldings(
     const txPrice = new Decimal(tx.price || 0);
     const txFee = new Decimal(tx.fee || 0);
 
-    if (tx.type === 'buy') {
-      const addedCost = txQty.times(txPrice).plus(txFee);
+    if (tx.type === 'buy' || tx.type === 'transfer_in') {
+      const addedCost = txPrice.isZero() ? new Decimal(0) : txQty.times(txPrice).plus(txFee);
       const newQty = current.quantity.plus(txQty);
       const newTotalCost = current.totalCost.plus(addedCost);
       const newAvgCost = newQty.isZero() ? new Decimal(0) : newTotalCost.dividedBy(newQty);
@@ -108,11 +115,16 @@ export function computeHoldings(
         totalCost: newTotalCost,
         averageCost: newAvgCost,
       });
-    } else if (tx.type === 'sell') {
+    } else if (
+      tx.type === 'sell' ||
+      tx.type === 'transfer_out' ||
+      tx.type === 'crypto_fee' ||
+      tx.type === 'maturity'
+    ) {
       if (txQty.greaterThan(current.quantity)) {
         if (strict) {
           throw new InsufficientHoldingsError(
-            `Cannot sell ${txQty.toString()} units. Account ${tx.accountId} only holds ${current.quantity.toString()} units of instrument ${tx.instrumentId}.`
+            `Cannot ${tx.type} ${txQty.toString()} units. Account ${tx.accountId} only holds ${current.quantity.toString()} units of instrument ${tx.instrumentId}.`
           );
         }
         // Non-strict fallback: clamp holding to 0
@@ -136,7 +148,7 @@ export function computeHoldings(
           averageCost: new Decimal(0),
         });
       } else {
-        // Average cost does not change on sell; total cost is reduced proportionally
+        // Average cost does not change on sell/transfer/maturity; total cost is reduced proportionally
         const newTotalCost = current.averageCost.times(newQty);
         holdingsMap.set(key, {
           accountId: tx.accountId,
@@ -216,9 +228,28 @@ export function computeCashBalances(
         updated = current.plus(amount).minus(fee);
         break;
 
+      case 'coupon':
+        // Bond coupon payment received
+        updated = current.plus(amount).minus(fee);
+        break;
+
+      case 'maturity':
+        // Bond principal returned at maturity
+        const maturityAmt = amount.isZero() ? qty.times(price) : amount;
+        updated = current.plus(maturityAmt).minus(fee);
+        break;
+
       case 'interest':
         // Interest income added
         updated = current.plus(amount).minus(fee);
+        break;
+
+      case 'crypto_fee':
+        // Crypto fee deducted from cash if amount specified
+        if (!amount.isZero() || !fee.isZero()) {
+          const feePaid = amount.isZero() ? fee : amount;
+          updated = current.minus(feePaid);
+        }
         break;
 
       case 'fee':

@@ -6,19 +6,23 @@ export type { PriceProvider, PriceQuote, PriceMap, PriceSource, ValuationMethod 
 export { MockPriceProvider } from './mock.provider';
 export { ManualPriceProvider } from './manual.provider';
 export { FinnhubPriceProvider } from './finnhub.provider';
+export { CoinGeckoPriceProvider } from './coingecko.provider';
 
 import type { PriceProvider, PriceSource } from './types';
 import { ManualPriceProvider } from './manual.provider';
 import { FinnhubPriceProvider } from './finnhub.provider';
+import { CoinGeckoPriceProvider } from './coingecko.provider';
 
 /**
  * Factory — returns the correct provider for a given source.
- * Falls back to ManualPriceProvider when the API key is missing.
+ * Falls back to ManualPriceProvider when API keys are missing or source is manual.
  */
 export function getProvider(source: PriceSource): PriceProvider {
   switch (source) {
     case 'finnhub':
       return new FinnhubPriceProvider();
+    case 'coingecko':
+      return new CoinGeckoPriceProvider();
     case 'manual':
     case 'import':
     default:
