@@ -1,1 +1,3 @@
-// src/lib/view-models barrel placeholder
+export * from './account';
+export * from './transaction';
+export * from './holdings';

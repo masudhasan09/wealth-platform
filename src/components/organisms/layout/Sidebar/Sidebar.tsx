@@ -15,6 +15,8 @@ export const MAIN_NAV_ROUTES: NavRoute[] = [
   { label: 'Accounts', href: '/accounts', icon: 'Wallet' },
   { label: 'Transactions', href: '/transactions', icon: 'ArrowLeftRight' },
   { label: 'Holdings', href: '/holdings', icon: 'PieChart' },
+  { label: 'Net Worth', href: '/net-worth', icon: 'TrendingUp' },
+  { label: 'Market Prices', href: '/prices', icon: 'LineChart' },
   { label: 'Fixed Income', href: '/fixed-income', icon: 'Landmark' },
   { label: 'Real Estate', href: '/real-estate', icon: 'Building2' },
   { label: 'Tax & Gains', href: '/gains', icon: 'Receipt' },

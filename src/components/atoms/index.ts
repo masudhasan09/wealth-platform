@@ -16,3 +16,4 @@ export * from './FileInput';
 export * from './MoneyText';
 export * from './PercentText';
 export * from './DateText';
+export * from './FreshnessBadge';

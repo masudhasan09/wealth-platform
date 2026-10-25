@@ -42,6 +42,15 @@ import {
   ConfirmDialog,
   Stepper,
 } from '@/components/molecules';
+import {
+  DataTable,
+  AccountList,
+  TransactionTable,
+  HoldingsTable,
+  BondDetailsPanel,
+  CouponScheduleTable,
+  MaturityLadder,
+} from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
   if (process.env.NODE_ENV === 'production') {
@@ -89,32 +98,34 @@ export default function ComponentGalleryPage() {
           <Heading level="h3">Input, Select, Textarea, Checkbox, Label</Heading>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="demo-input-sm">Input SM</Label>
-              <Input id="demo-input-sm" size="sm" placeholder="Small input" />
+              <Label htmlFor="demo-input-sm">Stock Symbol (Small / &quot;SM&quot; — 32px height for compact tables)</Label>
+              <Input id="demo-input-sm" size="sm" placeholder="e.g. AAPL, NVDA, MSFT" />
             </div>
             <div>
-              <Label htmlFor="demo-input-md">Input MD (Default)</Label>
-              <Input id="demo-input-md" size="md" placeholder="Default input" />
+              <Label htmlFor="demo-input-md">Account Name (Medium / &quot;MD&quot; — 40px standard form height)</Label>
+              <Input id="demo-input-md" size="md" placeholder="e.g. Vanguard 401(k), Fidelity Brokerage" />
             </div>
             <div>
-              <Label htmlFor="demo-input-error">Input with Error</Label>
-              <Input id="demo-input-error" error placeholder="Invalid input" defaultValue="Invalid value" />
+              <Label htmlFor="demo-input-error">Share Price (Example Error State)</Label>
+              <Input id="demo-input-error" error placeholder="e.g. 185.50" defaultValue="Invalid negative price: -$15.00" />
             </div>
             <div>
-              <Label htmlFor="demo-select">Select</Label>
+              <Label htmlFor="demo-select">Asset Class (Dropdown Select)</Label>
               <Select id="demo-select" defaultValue="equity">
-                <option value="equity">Equity</option>
-                <option value="crypto">Crypto</option>
-                <option value="fixed_income">Fixed Income</option>
+                <option value="equity">Equity (e.g. Stocks, ETFs)</option>
+                <option value="crypto">Crypto (e.g. Bitcoin, Ethereum)</option>
+                <option value="fixed_income">Fixed Income (e.g. US Treasuries, Corporate Bonds)</option>
+                <option value="real_estate">Real Estate (e.g. Residential, Commercial)</option>
+                <option value="cash">Cash & Equivalents (e.g. Savings, Money Market)</option>
               </Select>
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="demo-file">FileInput (CSV Upload)</Label>
+              <Label htmlFor="demo-file">Brokerage Statement (File Upload for CSV Import)</Label>
               <FileInput id="demo-file" accept=".csv" />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="demo-textarea">Textarea</Label>
-              <Textarea id="demo-textarea" placeholder="Enter notes or description..." />
+              <Label htmlFor="demo-textarea">Transaction Notes (Multi-line Textarea)</Label>
+              <Textarea id="demo-textarea" placeholder="e.g. Reinvested quarterly dividend or note for tax year 2024..." />
             </div>
             <div className="md:col-span-2 flex items-center gap-4">
               <Checkbox
@@ -371,6 +382,211 @@ export default function ComponentGalleryPage() {
             title="No fixed income bonds found"
             description="Add corporate or municipal bonds, Treasury notes, or CDs to track coupon schedules and yields."
             action={<Button>Add Bond</Button>}
+          />
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ================= ORGANISMS ================= */}
+      <section className="space-y-8">
+        <div>
+          <Heading level="h2">Organisms (Phase 1)</Heading>
+          <Text variant="caption" tone="muted">
+            Complex multi-molecule components for Account, Ledger, and Holdings domains
+          </Text>
+        </div>
+
+        {/* Generic DataTable Organism */}
+        <div className="p-6 rounded-lg border border-border bg-surface space-y-4">
+          <Heading level="h3">DataTable (Generic shared table foundation)</Heading>
+          <DataTable
+            columns={[
+              { header: 'Metric', accessorKey: 'metric' },
+              { header: 'Status', accessorKey: 'status' },
+              { header: 'Score', accessorKey: 'score', align: 'right' },
+            ]}
+            data={[
+              { id: '1', metric: 'Portfolio Diversification', status: 'Optimal', score: '94/100' },
+              { id: '2', metric: 'Liquidity Reserve', status: 'Healthy', score: '88/100' },
+            ]}
+            keyExtractor={(item) => item.id}
+          />
+        </div>
+
+        {/* AccountList Organism */}
+        <div className="p-6 rounded-lg border border-border bg-surface space-y-4">
+          <Heading level="h3">AccountList</Heading>
+          <AccountList
+            accounts={[
+              {
+                id: 'demo-acc-1',
+                name: 'Fidelity Brokerage',
+                type: 'brokerage',
+                currency: 'USD',
+                cashBalance: '14250.00',
+                description: 'Taxable trading account with margin',
+              },
+              {
+                id: 'demo-acc-2',
+                name: 'Vanguard Roth IRA',
+                type: 'roth_ira',
+                currency: 'USD',
+                cashBalance: '5300.25',
+              },
+            ]}
+          />
+        </div>
+
+        {/* HoldingsTable Organism */}
+        <div className="p-6 rounded-lg border border-border bg-surface space-y-4">
+          <Heading level="h3">HoldingsTable (Built on shared DataTable)</Heading>
+          <HoldingsTable
+            holdings={[
+              {
+                accountId: 'demo-acc-1',
+                accountName: 'Fidelity Brokerage',
+                instrumentId: 'demo-inst-1',
+                symbol: 'AAPL',
+                instrumentName: 'Apple Inc.',
+                assetClass: 'equity',
+                quantity: '20',
+                averageCost: '110.00',
+                totalCost: '2200.00',
+              },
+              {
+                accountId: 'demo-acc-1',
+                accountName: 'Fidelity Brokerage',
+                instrumentId: 'demo-inst-2',
+                symbol: 'BTC',
+                instrumentName: 'Bitcoin',
+                assetClass: 'crypto',
+                quantity: '0.25',
+                averageCost: '22400.00',
+                totalCost: '5600.00',
+              },
+            ]}
+          />
+        </div>
+
+        {/* TransactionTable Organism */}
+        <div className="p-6 rounded-lg border border-border bg-surface space-y-4">
+          <Heading level="h3">TransactionTable (Built on shared DataTable)</Heading>
+          <TransactionTable
+            transactions={[
+              {
+                id: 'tx-1',
+                accountId: 'demo-acc-1',
+                accountName: 'Fidelity Brokerage',
+                instrumentId: 'demo-inst-1',
+                symbol: 'AAPL',
+                instrumentName: 'Apple Inc.',
+                type: 'buy',
+                date: '2024-01-15T00:00:00.000Z',
+                quantity: '10',
+                price: '100.00',
+                amount: '1000.00',
+                fee: '0',
+                isVoided: false,
+              },
+              {
+                id: 'tx-2',
+                accountId: 'demo-acc-1',
+                accountName: 'Fidelity Brokerage',
+                instrumentId: 'demo-inst-1',
+                symbol: 'AAPL',
+                instrumentName: 'Apple Inc.',
+                type: 'buy',
+                date: '2024-01-16T00:00:00.000Z',
+                quantity: '10',
+                price: '120.00',
+                amount: '1200.00',
+                fee: '0',
+                isVoided: false,
+              },
+              {
+                id: 'tx-3',
+                accountId: 'demo-acc-1',
+                accountName: 'Fidelity Brokerage',
+                instrumentId: 'demo-inst-1',
+                symbol: 'AAPL',
+                instrumentName: 'Apple Inc.',
+                type: 'buy',
+                date: '2024-01-17T00:00:00.000Z',
+                quantity: '5',
+                price: '150.00',
+                amount: '750.00',
+                fee: '0',
+                isVoided: true,
+                voidedReason: 'Duplicate transaction recorded by error',
+              },
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* Phase 3: Fixed Income Organisms */}
+      <section className="space-y-4">
+        <Heading level="h2">Fixed Income Organisms (Phase 3)</Heading>
+        <div className="space-y-6">
+          <BondDetailsPanel
+            bond={{
+              symbol: 'UST-10Y',
+              name: 'US Treasury 4.5% 2034',
+              faceValue: '1000',
+              couponRate: '0.045',
+              couponFrequency: 'semi_annual',
+              maturityDate: '2034-01-01T00:00:00.000Z',
+              issueDate: '2024-01-01T00:00:00.000Z',
+              dayCount: 'actual_actual',
+              subType: 'treasury_note',
+            }}
+            currentPrice="980.00"
+          />
+
+          <CouponScheduleTable
+            bond={{
+              symbol: 'UST-2Y',
+              name: 'US Treasury 4.0% 2026',
+              faceValue: '1000',
+              couponRate: '0.04',
+              couponFrequency: 'semi_annual',
+              maturityDate: '2026-01-01T00:00:00.000Z',
+              issueDate: '2024-01-01T00:00:00.000Z',
+            }}
+          />
+
+          <MaturityLadder
+            bonds={[
+              {
+                symbol: 'UST-6M',
+                name: 'US Treasury Bill 6M',
+                maturityDate: '2024-06-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '980',
+                quantity: '5',
+                couponRate: '0.00',
+              },
+              {
+                symbol: 'UST-2Y',
+                name: 'US Treasury Note 2Y',
+                maturityDate: '2025-06-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '990',
+                quantity: '10',
+                couponRate: '0.045',
+              },
+              {
+                symbol: 'UST-10Y',
+                name: 'US Treasury Bond 10Y',
+                maturityDate: '2034-01-01T00:00:00.000Z',
+                faceValue: '1000',
+                marketPrice: '1000',
+                quantity: '2',
+                couponRate: '0.04',
+              },
+            ]}
+            asOfDate="2024-01-01T00:00:00.000Z"
           />
         </div>
       </section>

@@ -5,13 +5,12 @@
  * Run: npx tsx prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client';
-import * as crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-/** Minimal password hash for demo only — Phase 1 adds bcrypt */
 function demoHash(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return bcrypt.hashSync(password, 10);
 }
 
 async function main() {
@@ -22,7 +21,9 @@ async function main() {
   // -------------------------------------------------------------------------
   const user = await prisma.user.upsert({
     where: { email: 'demo@wealthtrack.dev' },
-    update: {},
+    update: {
+      passwordHash: demoHash('demo1234'),
+    },
     create: {
       email: 'demo@wealthtrack.dev',
       name: 'Demo User',
@@ -60,11 +61,13 @@ async function main() {
 
   const tbond = await prisma.instrument.upsert({
     where: { id: 'inst-tbond' },
-    update: {},
+    update: {
+      symbol: 'UST-4Y',
+    },
     create: {
       id: 'inst-tbond',
       assetClass: 'fixed_income',
-      symbol: null,
+      symbol: 'UST-4Y',
       name: 'US Treasury Note 4% 2028',
       currency: 'USD',
     },
@@ -189,6 +192,58 @@ async function main() {
   // -------------------------------------------------------------------------
   // Transactions (immutable ledger)
   // -------------------------------------------------------------------------
+  // Initial account funding deposits
+  await prisma.transaction.upsert({
+    where: { id: 'tx-brokerage-deposit-1' },
+    update: {},
+    create: {
+      id: 'tx-brokerage-deposit-1',
+      accountId: brokerage.id,
+      instrumentId: cash.id,
+      type: 'deposit',
+      date: new Date('2023-01-01'),
+      quantity: '25000',
+      price: '1',
+      amount: '25000',
+      fee: '0',
+      note: 'Initial brokerage deposit',
+    },
+  });
+
+  await prisma.transaction.upsert({
+    where: { id: 'tx-crypto-deposit-1' },
+    update: {},
+    create: {
+      id: 'tx-crypto-deposit-1',
+      accountId: cryptoWallet.id,
+      instrumentId: cash.id,
+      type: 'deposit',
+      date: new Date('2023-01-01'),
+      quantity: '10000',
+      price: '1',
+      amount: '10000',
+      fee: '0',
+      note: 'Initial crypto funding',
+    },
+  });
+
+  await prisma.transaction.upsert({
+    where: { id: 'tx-ira-deposit-1' },
+    update: {},
+    create: {
+      id: 'tx-ira-deposit-1',
+      accountId: ira.id,
+      instrumentId: cash.id,
+      type: 'deposit',
+      date: new Date('2023-01-01'),
+      quantity: '10000',
+      price: '1',
+      amount: '10000',
+      fee: '0',
+      note: '2023 IRA contribution',
+    },
+  });
+
   // Equity buys
   await prisma.transaction.upsert({
     where: { id: 'tx-aapl-buy-1' },
@@ -269,6 +324,24 @@ async function main() {
       amount: '4900.00',
       fee: '0',
       note: '5 bonds @ 98 (face $1,000 each)',
+    },
+  });
+
+  // Fixed income semiannual coupon payment ($100 = 5 bonds * $1000 * 4% / 2)
+  await prisma.transaction.upsert({
+    where: { id: 'tx-tbond-coupon-1' },
+    update: {},
+    create: {
+      id: 'tx-tbond-coupon-1',
+      accountId: ira.id,
+      instrumentId: tbond.id,
+      type: 'coupon',
+      date: new Date('2023-11-15'),
+      quantity: '0',
+      price: '0',
+      amount: '100.00',
+      fee: '0',
+      note: 'Semiannual coupon payment 5x $20.00',
     },
   });
 

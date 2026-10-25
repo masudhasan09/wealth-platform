@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils/cn';
 
 export interface FormFieldProps {
   id?: string;
+  htmlFor?: string;
   label?: string;
   required?: boolean;
   hint?: string;
@@ -19,6 +20,7 @@ export interface FormFieldProps {
 
 export function FormField({
   id,
+  htmlFor,
   label,
   required = false,
   hint,
@@ -27,7 +29,7 @@ export function FormField({
   children,
 }: FormFieldProps) {
   const generatedId = React.useId();
-  const fieldId = id || children.props.id || generatedId;
+  const fieldId = id || htmlFor || children.props.id || generatedId;
   const hintId = `${fieldId}-hint`;
   const errorId = `${fieldId}-error`;
 

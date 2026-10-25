@@ -1,1 +1,1 @@
-// src/components/organisms/pricing barrel placeholder
+export * from './PriceForm';

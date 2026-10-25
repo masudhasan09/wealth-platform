@@ -1,1 +1,4 @@
-// src/components/organisms/fixed-income barrel placeholder
+export * from './BondForm';
+export * from './BondDetailsPanel';
+export * from './CouponScheduleTable';
+export * from './MaturityLadder';

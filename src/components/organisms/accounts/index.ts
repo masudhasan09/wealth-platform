@@ -1,1 +1,2 @@
-// src/components/organisms/accounts barrel placeholder
+export * from './AccountForm';
+export * from './AccountList';

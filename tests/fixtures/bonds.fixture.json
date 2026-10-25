@@ -1,0 +1,113 @@
+{
+  "accruedInterest": [
+    {
+      "description": "US Treasury actual/actual sanity check from specification",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.05",
+        "couponFrequency": "semi_annual",
+        "dayCount": "actual_actual",
+        "issueDate": "2024-01-01T00:00:00.000Z",
+        "maturityDate": "2029-01-01T00:00:00.000Z"
+      },
+      "settlementDate": "2024-03-01T00:00:00.000Z",
+      "expectedAccrued": "8.24",
+      "notes": "60 days elapsed in a 182-day coupon period: 25 * (60 / 182) = 8.241758..."
+    },
+    {
+      "description": "Corporate 30/360 semiannual coupon",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.06",
+        "couponFrequency": "semi_annual",
+        "dayCount": "thirty_360",
+        "issueDate": "2024-01-15T00:00:00.000Z",
+        "maturityDate": "2034-01-15T00:00:00.000Z"
+      },
+      "settlementDate": "2024-04-15T00:00:00.000Z",
+      "expectedAccrued": "15.00",
+      "notes": "Exactly 3 months elapsed in 6-month period (90/180 days): 30 * (90/180) = 15.00"
+    },
+    {
+      "description": "Zero coupon bond has zero accrued interest",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.00",
+        "couponFrequency": "zero_coupon",
+        "dayCount": "actual_actual",
+        "issueDate": "2024-01-01T00:00:00.000Z",
+        "maturityDate": "2025-01-01T00:00:00.000Z"
+      },
+      "settlementDate": "2024-07-01T00:00:00.000Z",
+      "expectedAccrued": "0.00",
+      "notes": "Zero coupon"
+    }
+  ],
+  "currentYield": [
+    {
+      "description": "Discount bond current yield",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.06"
+      },
+      "price": "950",
+      "expectedCurrentYield": "0.063158"
+    },
+    {
+      "description": "Par bond current yield equals coupon rate",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.05"
+      },
+      "price": "1000",
+      "expectedCurrentYield": "0.050000"
+    },
+    {
+      "description": "Premium bond current yield",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.05"
+      },
+      "price": "1050",
+      "expectedCurrentYield": "0.047619"
+    }
+  ],
+  "yieldToMaturity": [
+    {
+      "description": "Par bond with annual coupons has YTM equal to coupon rate",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.05",
+        "couponFrequency": "annual",
+        "maturityDate": "2029-01-01T00:00:00.000Z"
+      },
+      "price": "1000",
+      "settlementDate": "2024-01-01T00:00:00.000Z",
+      "expectedYTM": "0.0500"
+    },
+    {
+      "description": "Discount bond with 2 years to maturity, semiannual 5% coupon at $950",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.05",
+        "couponFrequency": "semi_annual",
+        "maturityDate": "2026-01-01T00:00:00.000Z"
+      },
+      "price": "950",
+      "settlementDate": "2024-01-01T00:00:00.000Z",
+      "expectedYTM": "0.0775"
+    },
+    {
+      "description": "Zero coupon 1-year Treasury bill at $960",
+      "bond": {
+        "faceValue": "1000",
+        "couponRate": "0.00",
+        "couponFrequency": "zero_coupon",
+        "maturityDate": "2025-01-01T00:00:00.000Z"
+      },
+      "price": "960",
+      "settlementDate": "2024-01-01T00:00:00.000Z",
+      "expectedYTM": "0.0416"
+    }
+  ]
+}

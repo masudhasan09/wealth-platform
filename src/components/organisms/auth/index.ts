@@ -1,1 +1,2 @@
-// src/components/organisms/auth barrel placeholder
+export * from './LoginForm';
+export * from './RegisterForm';
