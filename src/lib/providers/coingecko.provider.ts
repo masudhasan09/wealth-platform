@@ -126,3 +126,4 @@ export class CoinGeckoPriceProvider implements PriceProvider {
     return map;
   }
 }
+

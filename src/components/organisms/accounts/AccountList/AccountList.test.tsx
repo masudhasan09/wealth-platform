@@ -40,5 +40,15 @@ describe('AccountList Organism', () => {
     fireEvent.click(btn);
     expect(handleAdd).toHaveBeenCalled();
   });
+
+  it('triggers onDeleteAccount when remove button is clicked', () => {
+    const handleDelete = vi.fn();
+    render(<AccountList accounts={mockAccounts} onDeleteAccount={handleDelete} />);
+
+    const removeButtons = screen.getAllByRole('button', { name: /Remove/i });
+    expect(removeButtons).toHaveLength(2);
+    fireEvent.click(removeButtons[0]);
+    expect(handleDelete).toHaveBeenCalledWith(mockAccounts[0]);
+  });
 });
 

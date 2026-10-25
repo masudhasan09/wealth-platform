@@ -35,3 +35,4 @@ describe('BondDetailsPanel Organism', () => {
     expect(screen.getByText('Yield to Maturity (YTM)')).toBeInTheDocument();
   });
 });
+

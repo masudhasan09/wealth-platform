@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { upsertPrice } from '@/lib/db/prices';
 import { findOrCreateInstrument } from '@/lib/db/instruments';
 import { getPrices } from '@/lib/services/price.service';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,10 @@ export async function setPriceAction(input: SetPriceInput): Promise<SetPriceResu
       asOf: new Date(),
       method: 'manual',
     });
+    revalidatePath('/prices');
+    revalidatePath('/holdings');
+    revalidatePath('/net-worth');
+    revalidatePath('/dashboard');
     return { success: true };
   } catch (err) {
     console.error('[setPriceAction]', err);

@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { getUserByEmail, verifyUserPassword } from '@/lib/db';
+import { getUserByEmail, getUserById, verifyUserPassword } from '@/lib/db';
 import { loginSchema } from '@/lib/validation';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -45,9 +45,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token;
     },
-    session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
+    async session({ session, token }) {
+      if (token?.id && session.user) {
+        const user = await getUserById(token.id as string);
+        if (!user) {
+          return {
+            ...session,
+            user: undefined as unknown as typeof session.user,
+            expires: new Date(0).toISOString(),
+          };
+        }
+        session.user.id = user.id;
+        session.user.name = user.name;
+        session.user.email = user.email;
       }
       return session;
     },

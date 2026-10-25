@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { Button } from '@/components/atoms/Button';
 import { Heading } from '@/components/atoms/Heading';
@@ -13,6 +14,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const session = await auth();
+
+  if (session?.user?.id) {
+    redirect('/dashboard');
+  }
 
   return (
     <DashboardLayout

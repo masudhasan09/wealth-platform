@@ -162,3 +162,4 @@ describe('Fixed Income Math: Maturity Ladder', () => {
     expect(tenPlusY?.annualIncome).toBe('80.00'); // 2,000 * 0.04
   });
 });
+

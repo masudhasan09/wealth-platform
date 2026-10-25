@@ -48,3 +48,25 @@ export async function updateAccount(
   });
 }
 
+export async function deleteAccount(id: string, userId: string) {
+  const account = await getAccountById(id, userId);
+  if (!account) {
+    throw new Error('Account not found or access denied');
+  }
+
+  const txCount = await prisma.transaction.count({
+    where: { accountId: id },
+  });
+
+  if (txCount > 0) {
+    return prisma.account.update({
+      where: { id },
+      data: { closedAt: new Date() },
+    });
+  }
+
+  return prisma.account.delete({
+    where: { id },
+  });
+}
+

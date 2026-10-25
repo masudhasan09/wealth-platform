@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getTransactionsByUserId } from '@/lib/db/transactions';
 import { computeHoldings } from '@/lib/finance/holdings';
-import { getLatestPrice } from '@/lib/db/prices';
+import { getLatestPrice, getLatestPriceById } from '@/lib/db/prices';
 import { prisma } from '@/lib/db/client';
 import { DashboardLayout } from '@/components/templates';
 import { PricesClient } from './PricesClient';
@@ -31,18 +31,26 @@ export default async function PricesPage() {
 
   const holdings = computeHoldings(financeTx, { strict: false });
 
-  // Get unique instrument IDs
-  const instrumentIds = [...new Set(holdings.map((h) => h.instrumentId))];
+  // Get unique instrument IDs held in portfolio
+  const holdingInstrumentIds = [...new Set(holdings.map((h) => h.instrumentId))];
+
+  // Fetch instruments that are held in portfolio OR have recorded prices
   const instruments = await prisma.instrument.findMany({
-    where: { id: { in: instrumentIds } },
+    where: {
+      OR: [
+        { id: { in: holdingInstrumentIds } },
+        { prices: { some: {} } },
+      ],
+    },
     select: { id: true, symbol: true, name: true, assetClass: true },
+    orderBy: { updatedAt: 'desc' },
   });
 
   // Fetch latest price for each instrument
   const instrumentPrices = await Promise.all(
     instruments.map(async (inst) => {
       const sym = inst.symbol ?? '';
-      const p = sym ? await getLatestPrice(sym) : null;
+      const p = sym ? await getLatestPrice(sym) : await getLatestPriceById(inst.id);
       return {
         instrumentId: inst.id,
         ticker: sym,

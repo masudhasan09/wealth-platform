@@ -26,3 +26,4 @@ describe('CouponScheduleTable Organism', () => {
     expect(screen.getByText('#1')).toBeInTheDocument();
   });
 });
+

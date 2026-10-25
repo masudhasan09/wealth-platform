@@ -72,7 +72,7 @@ export function PricesClient({ instruments }: PricesClientProps) {
       {/* Instrument price table */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         <div className="p-4 border-b border-border">
-          <Heading level="h3">Portfolio Instruments</Heading>
+          <Heading level="h3">Portfolio & Tracked Instruments</Heading>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -90,7 +90,7 @@ export function PricesClient({ instruments }: PricesClientProps) {
               {instruments.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
-                    No instruments found. Add transactions to see prices here.
+                    No instruments found. Add a price above or record transactions to see instruments here.
                   </td>
                 </tr>
               )}

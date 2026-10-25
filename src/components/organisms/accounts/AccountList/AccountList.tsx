@@ -14,6 +14,7 @@ export interface AccountListProps {
   accounts: AccountViewModel[];
   onAddAccount?: () => void;
   onSelectAccount?: (account: AccountViewModel) => void;
+  onDeleteAccount?: (account: AccountViewModel) => void;
 }
 
 const typeLabels: Record<string, string> = {
@@ -31,6 +32,7 @@ export function AccountList({
   accounts,
   onAddAccount,
   onSelectAccount,
+  onDeleteAccount,
 }: AccountListProps) {
   if (accounts.length === 0) {
     return (
@@ -99,15 +101,28 @@ export function AccountList({
                 </div>
               </div>
 
-              {onSelectAccount && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onSelectAccount(acct)}
-                >
-                  View
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {onSelectAccount && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onSelectAccount(acct)}
+                  >
+                    View
+                  </Button>
+                )}
+                {onDeleteAccount && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger hover:bg-danger-muted"
+                    onClick={() => onDeleteAccount(acct)}
+                    aria-label={`Remove ${acct.name}`}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}

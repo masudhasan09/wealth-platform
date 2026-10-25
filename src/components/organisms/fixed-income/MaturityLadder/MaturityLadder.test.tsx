@@ -29,3 +29,4 @@ describe('MaturityLadder Organism', () => {
     expect(screen.getByText('1 - 3 Years')).toBeInTheDocument();
   });
 });
+

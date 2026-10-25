@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { AccountList } from '@/components/organisms/accounts';
 import { AccountForm } from '@/components/organisms/accounts';
 import { Button } from '@/components/atoms/Button';
 import { Heading } from '@/components/atoms/Heading';
-import { createAccountAction } from '@/app/actions/accounts';
+import { Alert } from '@/components/molecules/Alert';
+import { ConfirmDialog } from '@/components/molecules/ConfirmDialog';
+import { createAccountAction, deleteAccountAction } from '@/app/actions/accounts';
 import type { AccountViewModel } from '@/lib/view-models';
 import type { AccountInput } from '@/lib/validation';
 
@@ -14,8 +17,12 @@ export interface AccountsClientProps {
 }
 
 export function AccountsClient({ initialAccounts }: AccountsClientProps) {
+  const router = useRouter();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<AccountViewModel | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [, startTransition] = useTransition();
 
   const handleCreate = async (values: AccountInput) => {
     setError(null);
@@ -24,14 +31,43 @@ export function AccountsClient({ initialAccounts }: AccountsClientProps) {
       setError(result.error);
     } else {
       setShowAddModal(false);
+      startTransition(() => {
+        router.refresh();
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!accountToDelete) return;
+    setIsDeleting(true);
+    setError(null);
+    try {
+      const result = await deleteAccountAction(accountToDelete.id);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setAccountToDelete(null);
+        startTransition(() => {
+          router.refresh();
+        });
+      }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert tone="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
+
       <AccountList
         accounts={initialAccounts}
         onAddAccount={() => setShowAddModal(true)}
+        onDeleteAccount={(acct) => setAccountToDelete(acct)}
       />
 
       {showAddModal && (
@@ -57,7 +93,17 @@ export function AccountsClient({ initialAccounts }: AccountsClientProps) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(accountToDelete)}
+        title="Remove Account"
+        description={`Are you sure you want to remove "${accountToDelete?.name}"? If this account has past transactions, it will be closed to preserve your ledger audit trail.`}
+        confirmLabel="Remove Account"
+        variant="danger"
+        loading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setAccountToDelete(null)}
+      />
     </div>
   );
 }
-

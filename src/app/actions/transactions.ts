@@ -30,6 +30,9 @@ export async function createTransactionAction(values: TransactionInput) {
     return { success: true, transaction };
   } catch (err: unknown) {
     if (err instanceof Error) {
+      if (err.message.includes('Foreign key constraint') || err.message.includes('foreign key')) {
+        return { error: 'Session out of sync with the database. Please sign out and sign back in.' };
+      }
       return { error: err.message };
     }
     return { error: 'Failed to record transaction.' };
