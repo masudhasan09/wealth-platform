@@ -2,5 +2,5 @@ export * from './auth';
 export * from './account';
 export * from './transaction';
 export * from './bond';
-export * from './bond';
+export * from './property';
 

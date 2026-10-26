@@ -41,6 +41,7 @@ import {
   ChartContainer,
   ConfirmDialog,
   Stepper,
+  Tabs,
 } from '@/components/molecules';
 import {
   DataTable,
@@ -50,6 +51,15 @@ import {
   BondDetailsPanel,
   CouponScheduleTable,
   MaturityLadder,
+  DashboardSection,
+  AllocationChart,
+  IncomeChart,
+  PerformancePanel,
+  TopHoldings,
+  PropertyForm,
+  ValuationHistory,
+  MortgagePanel,
+  AmortizationTable,
 } from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
@@ -587,6 +597,161 @@ export default function ComponentGalleryPage() {
               },
             ]}
             asOfDate="2024-01-01T00:00:00.000Z"
+          />
+        </div>
+      </section>
+
+      {/* ─── Phase 4: Dashboard & Real Estate Organisms ──────────────── */}
+      <section className="space-y-4">
+        <Heading level="h2">Phase 4: Dashboard &amp; Performance Organisms</Heading>
+        <div className="space-y-6">
+          <DashboardSection
+            title="Performance Summary"
+            subtitle="Time-weighted and money-weighted return calculations"
+          >
+            <PerformancePanel
+              twrPct={14.8}
+              mwrPct={16.2}
+              liquidReturnPct={18.5}
+              appraisedReturnPct={5.2}
+            />
+          </DashboardSection>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardSection title="Asset Allocation Chart" subtitle="Donut chart with groupBy toggle">
+              <AllocationChart
+                assetClassData={[
+                  { id: '1', label: 'Equities & ETFs', value: 450000, color: 'var(--asset-equity)' },
+                  { id: '2', label: 'Digital Assets', value: 120000, color: 'var(--asset-crypto)' },
+                  { id: '3', label: 'Fixed Income', value: 200000, color: 'var(--asset-fixed-income)' },
+                  { id: '4', label: 'Real Estate', value: 650000, color: 'var(--asset-real-estate)' },
+                  { id: '5', label: 'Cash & Reserves', value: 80000, color: 'var(--asset-cash)' },
+                ]}
+                accountTypeData={[
+                  { id: 'a1', label: 'Brokerage', value: 570000 },
+                  { id: 'a2', label: 'Retirement (IRA)', value: 200000 },
+                  { id: 'a3', label: 'Real Estate Entity', value: 650000 },
+                  { id: 'a4', label: 'Bank Checking/Savings', value: 80000 },
+                ]}
+              />
+            </DashboardSection>
+
+            <DashboardSection title="Income by Month Chart" subtitle="Yield cash flows">
+              <IncomeChart
+                data={[
+                  { month: 'May 24', dividends: 140, coupons: 300, interest: 45, rent: 1800, total: 2285 },
+                  { month: 'Jun 24', dividends: 260, coupons: 300, interest: 50, rent: 1800, total: 2410 },
+                  { month: 'Jul 24', dividends: 180, coupons: 300, interest: 45, rent: 1800, total: 2325 },
+                  { month: 'Aug 24', dividends: 310, coupons: 300, interest: 48, rent: 1800, total: 2458 },
+                  { month: 'Sep 24', dividends: 220, coupons: 300, interest: 52, rent: 1800, total: 2372 },
+                  { month: 'Oct 24', dividends: 290, coupons: 300, interest: 55, rent: 1800, total: 2445 },
+                ]}
+              />
+            </DashboardSection>
+          </div>
+
+          <DashboardSection title="Top Holdings Table" subtitle="Largest portfolio positions">
+            <TopHoldings
+              holdings={[
+                {
+                  symbol: 'AAPL',
+                  name: 'Apple Inc.',
+                  assetClass: 'equity',
+                  quantity: '500',
+                  marketValue: '90000',
+                  totalCost: '75000',
+                  unrealisedPnL: '15000',
+                  unrealisedPnLPct: '20.0',
+                  allocationPct: '6.0',
+                },
+                {
+                  symbol: 'BTC',
+                  name: 'Bitcoin',
+                  assetClass: 'crypto',
+                  quantity: '1.5',
+                  marketValue: '102000',
+                  totalCost: '60000',
+                  unrealisedPnL: '42000',
+                  unrealisedPnLPct: '70.0',
+                  allocationPct: '6.8',
+                },
+                {
+                  symbol: 'UST-10Y',
+                  name: 'US Treasury 10Y Bond',
+                  assetClass: 'fixed_income',
+                  quantity: '100',
+                  marketValue: '98500',
+                  totalCost: '100000',
+                  unrealisedPnL: '-1500',
+                  unrealisedPnLPct: '-1.5',
+                  allocationPct: '6.5',
+                },
+              ]}
+            />
+          </DashboardSection>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <Heading level="h2">Phase 4: Real Estate Components</Heading>
+        <div className="space-y-6">
+          <Tabs
+            items={[
+              { id: 'tab1', label: 'Overview' },
+              { id: 'tab2', label: 'Financing', badge: 1 },
+              { id: 'tab3', label: 'Schedule' },
+            ]}
+            activeTab="tab1"
+            onChange={() => {}}
+          />
+
+          <PropertyForm
+            accounts={[{ id: 'acc-1', name: 'Primary Account' }]}
+            onSubmit={() => {}}
+          />
+
+          <MortgagePanel
+            propertyId="prop-demo"
+            propertyValue="650000"
+            ownershipPct={1.0}
+            mortgage={{
+              id: 'm1',
+              name: 'Austin Property Mortgage',
+              principal: '480000',
+              rate: '0.0625',
+              termMonths: 360,
+              startDate: '2023-01-01',
+              outstandingBalance: '472000',
+            }}
+          />
+
+          <ValuationHistory
+            propertyId="prop-demo"
+            propertyName="Austin Property"
+            records={[
+              {
+                id: 'vm1',
+                date: '2024-06-01',
+                value: '650000',
+                method: 'manual',
+                note: 'Appraisal for loan refi',
+              },
+              {
+                id: 'vm2',
+                date: '2023-01-01',
+                value: '600000',
+                method: 'manual',
+                note: 'Acquisition price',
+              },
+            ]}
+            onAddMark={() => {}}
+          />
+
+          <AmortizationTable
+            principal="480000"
+            annualInterestRatePct="6.25"
+            termMonths={360}
+            startDate="2023-01-01"
           />
         </div>
       </section>

@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/auth';
+import Decimal from 'decimal.js';
 import { getTransactionsByUserId } from '@/lib/db/transactions';
 import { computeHoldings, computeCashBalances } from '@/lib/finance/holdings';
 import { valuePortfolio, computeNetWorth } from '@/lib/finance/valuation';
@@ -71,8 +72,16 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
     const rawCash = computeCashBalances(enriched);
     const cashMap = new Map(Object.entries(rawCash));
 
-    // Compute net worth
-    const result = computeNetWorth(positions, cashMap, unvaluedSymbols);
+    // Query liabilities for this user
+    const liabilities = await prisma.liability.findMany({
+      where: { account: { userId } },
+    });
+    const totalLiabilities = liabilities
+      .reduce((sum, l) => sum.plus(new Decimal(l.principal)), new Decimal(0))
+      .toFixed(2);
+
+    // Compute net worth (subtracting liabilities)
+    const result = computeNetWorth(positions, cashMap, unvaluedSymbols, totalLiabilities);
 
     return { result, positions };
   } catch (err) {

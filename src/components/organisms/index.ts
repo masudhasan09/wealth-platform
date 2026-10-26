@@ -5,6 +5,8 @@ export * from './transactions';
 export * from './holdings';
 export * from './pricing';
 export * from './fixed-income';
+export * from './real-estate';
+export * from './dashboard';
 export * from './layout/Sidebar';
 export * from './layout/Header';
 export * from './layout/Navbar';

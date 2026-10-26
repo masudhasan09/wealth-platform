@@ -16,3 +16,4 @@ export * from './UserInfo';
 export * from './ChartContainer';
 export * from './ConfirmDialog';
 export * from './Stepper';
+export * from './Tabs';
