@@ -29,3 +29,4 @@ describe('Tabs Molecule', () => {
     expect(handleChange).toHaveBeenCalledWith('accountType');
   });
 });
+

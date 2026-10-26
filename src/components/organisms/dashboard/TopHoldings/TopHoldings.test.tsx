@@ -28,3 +28,4 @@ describe('TopHoldings Organism', () => {
     expect(screen.getByText('No holdings found.')).toBeInTheDocument();
   });
 });
+

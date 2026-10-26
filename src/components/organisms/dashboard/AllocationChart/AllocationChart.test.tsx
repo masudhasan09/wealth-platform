@@ -38,3 +38,4 @@ describe('AllocationChart Organism', () => {
     expect(screen.getByText('No open investments to display.')).toBeInTheDocument();
   });
 });
+

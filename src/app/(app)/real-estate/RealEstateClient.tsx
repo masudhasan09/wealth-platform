@@ -410,3 +410,4 @@ export function RealEstateClient({ properties, accounts }: RealEstateClientProps
     </div>
   );
 }
+

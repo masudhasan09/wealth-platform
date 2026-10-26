@@ -18,3 +18,4 @@ describe('DashboardSection Organism', () => {
     expect(screen.getByText('Section Content')).toBeInTheDocument();
   });
 });
+

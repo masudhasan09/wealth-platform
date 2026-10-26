@@ -18,3 +18,4 @@ describe('IncomeChart Organism', () => {
     expect(screen.getByText('No income transactions recorded for this period.')).toBeInTheDocument();
   });
 });
+

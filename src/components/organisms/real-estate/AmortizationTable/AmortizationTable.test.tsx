@@ -36,3 +36,4 @@ describe('AmortizationTable', () => {
     expect(screen.getByText(/Year 2 of 30/i)).toBeInTheDocument();
   });
 });
+

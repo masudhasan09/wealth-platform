@@ -33,3 +33,4 @@ export const mortgageSchema = z.object({
 });
 
 export type MortgageInput = z.infer<typeof mortgageSchema>;
+

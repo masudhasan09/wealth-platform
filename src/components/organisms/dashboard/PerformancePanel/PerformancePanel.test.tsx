@@ -20,3 +20,4 @@ describe('PerformancePanel Organism', () => {
     expect(screen.getByText(/Appraisal Smoothing Note:/i)).toBeInTheDocument();
   });
 });
+
