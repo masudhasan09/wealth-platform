@@ -7,6 +7,7 @@ import { Text } from '@/components/atoms/Text';
 import { StatCard } from '@/components/molecules/StatCard';
 import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
+import { Icon } from '@/components/atoms/Icon';
 import { Alert } from '@/components/molecules/Alert';
 import { Tabs } from '@/components/molecules/Tabs';
 import { formatMoney, formatDate } from '@/lib/format';
@@ -185,11 +186,14 @@ export function RealEstateClient({ properties, accounts }: RealEstateClientProps
         />
       </div>
 
-      <div className="p-3 bg-surface-subtle border border-border rounded-lg text-xs text-text-muted flex items-start gap-2">
-        <span className="font-semibold text-text">Appraisal Smoothing Note:</span>
-        <span>
-          Real estate values rely on point-in-time appraisals and automated valuation models, which introduce appraisal smoothing bias. Volatility is naturally dampened compared to daily public markets.
-        </span>
+      <div className="flex items-start gap-3 p-3.5 rounded-lg bg-surface-muted border border-border text-xs text-text-muted">
+        <Icon name="Info" size="sm" className="text-info shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <span className="font-semibold text-text">Appraisal Smoothing Note: </span>
+          <span>
+            Real estate values rely on point-in-time appraisals and automated valuation models, which introduce appraisal smoothing bias. Volatility is naturally dampened compared to daily public markets.
+          </span>
+        </div>
       </div>
 
       {properties.length === 0 ? (
@@ -316,7 +320,7 @@ export function RealEstateClient({ properties, accounts }: RealEstateClientProps
                   <div>
                     <span className="text-text-muted block">Appraisal Marks</span>
                     <span className="font-medium text-text">
-                      {selectedProperty.valuationMarks.length} records
+                      {selectedProperty.valuationMarks.length} record{selectedProperty.valuationMarks.length === 1 ? '' : 's'}
                     </span>
                   </div>
                 </div>
