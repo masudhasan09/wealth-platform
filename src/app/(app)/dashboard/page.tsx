@@ -1,7 +1,6 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { DashboardLayout } from '@/components/templates';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
 import { getPropertiesByUserId } from '@/lib/db/real-estate';
 import { computeCashBalances } from '@/lib/finance/holdings';
@@ -233,37 +232,29 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <DashboardLayout
-      currentPath="/dashboard"
+    <DashboardClient
       user={{
         name: session.user.name || 'User',
         email: session.user.email || '',
       }}
-    >
-      <DashboardClient
-        user={{
-          name: session.user.name || 'User',
-          email: session.user.email || '',
-        }}
-        totalNetWorth={totalNetWorth}
-        totalCash={cashVal}
-        equitiesVal={equitiesVal}
-        cryptoVal={cryptoVal}
-        fixedIncomeVal={fixedIncomeVal}
-        realEstateVal={realEstateVal}
-        accountsCount={accounts.length}
-        snapshots={snapshots}
-        assetClassAllocation={assetClassAllocation}
-        accountTypeAllocation={accountTypeAllocation}
-        incomeData={finalIncomeData}
-        topHoldings={topHoldings}
-        performance={{
-          twrPct: twrVal,
-          mwrPct: mwrVal,
-          liquidReturnPct: liquidReturn,
-          appraisedReturnPct: appraisedReturn,
-        }}
-      />
-    </DashboardLayout>
+      totalNetWorth={totalNetWorth}
+      totalCash={cashVal}
+      equitiesVal={equitiesVal}
+      cryptoVal={cryptoVal}
+      fixedIncomeVal={fixedIncomeVal}
+      realEstateVal={realEstateVal}
+      accountsCount={accounts.length}
+      snapshots={snapshots}
+      assetClassAllocation={assetClassAllocation}
+      accountTypeAllocation={accountTypeAllocation}
+      incomeData={finalIncomeData}
+      topHoldings={topHoldings}
+      performance={{
+        twrPct: twrVal,
+        mwrPct: mwrVal,
+        liquidReturnPct: liquidReturn,
+        appraisedReturnPct: appraisedReturn,
+      }}
+    />
   );
 }

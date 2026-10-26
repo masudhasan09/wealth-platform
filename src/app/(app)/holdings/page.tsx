@@ -4,7 +4,6 @@ import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
 import { computeHoldings, computeCashBalances, InsufficientHoldingsError } from '@/lib/finance';
 import { getPrices } from '@/lib/services/price.service';
 import { getFreshnessVariant } from '@/lib/utils/freshness';
-import { DashboardLayout } from '@/components/templates';
 import { HoldingsClient } from './HoldingsClient';
 import type { HoldingViewModel, AccountViewModel } from '@/lib/view-models';
 import Decimal from 'decimal.js';
@@ -110,18 +109,10 @@ export default async function HoldingsPage() {
   }));
 
   return (
-    <DashboardLayout
-      currentPath="/holdings"
-      user={{
-        name: session.user.name || 'User',
-        email: session.user.email || '',
-      }}
-    >
-      <HoldingsClient
-        holdings={holdingViewModels}
-        accounts={accountViewModels}
-        ledgerWarning={ledgerWarning}
-      />
-    </DashboardLayout>
+    <HoldingsClient
+      holdings={holdingViewModels}
+      accounts={accountViewModels}
+      ledgerWarning={ledgerWarning}
+    />
   );
 }

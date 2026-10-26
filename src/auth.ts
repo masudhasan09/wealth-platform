@@ -1,9 +1,11 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { getUserByEmail, getUserById, verifyUserPassword } from '@/lib/db';
+import { getUserByEmail, verifyUserPassword } from '@/lib/db';
 import { loginSchema } from '@/lib/validation';
+import { authConfig } from '@/auth.config';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -38,33 +40,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token?.id && session.user) {
-        const user = await getUserById(token.id as string);
-        if (!user) {
-          return {
-            ...session,
-            user: undefined as unknown as typeof session.user,
-            expires: new Date(0).toISOString(),
-          };
-        }
-        session.user.id = user.id;
-        session.user.name = user.name;
-        session.user.email = user.email;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: '/login',
-  },
-  session: { strategy: 'jwt' },
 });
-

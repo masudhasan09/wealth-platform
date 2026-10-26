@@ -42,6 +42,7 @@ import {
   ConfirmDialog,
   Stepper,
   Tabs,
+  LogoutButton,
 } from '@/components/molecules';
 import {
   DataTable,
@@ -362,11 +363,20 @@ export default function ComponentGalleryPage() {
 
           <Divider />
 
-          <div className="flex items-center justify-between">
-            <UserInfo name="Demo User" email="demo@wealthtrack.dev" />
-            <Button variant="danger" size="sm" onClick={() => setDialogOpen(true)}>
-              Open Confirm Dialog
-            </Button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border rounded-lg bg-surface">
+            <div className="w-64">
+              <UserInfo
+                name="Demo User"
+                email="demo@wealthtrack.dev"
+                dropdownPosition="bottom"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <LogoutButton variant="secondary" />
+              <Button variant="danger" size="sm" onClick={() => setDialogOpen(true)}>
+                Open Confirm Dialog
+              </Button>
+            </div>
           </div>
 
           <Pagination

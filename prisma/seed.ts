@@ -345,23 +345,10 @@ async function main() {
     },
   });
 
-  // Property purchase
-  await prisma.transaction.upsert({
-    where: { id: 'tx-prop-buy-1' },
-    update: {},
-    create: {
-      id: 'tx-prop-buy-1',
-      accountId: propAccount.id,
-      instrumentId: property.id,
-      type: 'buy',
-      date: new Date('2021-06-01'),
-      quantity: '1',
-      price: '450000',
-      amount: '450000',
-      fee: '13500',
-      note: 'Purchase price + closing costs',
-    },
-  });
+  // NOTE: Real estate property acquisition is tracked via PropertyDetails + ValuationMark,
+  // NOT as a cash-depleting buy transaction. The mortgage liability covers the financing.
+  // We intentionally do NOT create a 'buy' transaction for the property purchase to avoid
+  // incorrectly draining the cash balance by $450k.
 
   // Cash deposit
   await prisma.transaction.upsert({

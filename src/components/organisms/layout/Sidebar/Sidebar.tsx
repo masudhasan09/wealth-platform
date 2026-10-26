@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NavItem } from '@/components/molecules/NavItem';
 import { UserInfo } from '@/components/molecules/UserInfo';
 import { cn } from '@/lib/utils/cn';
@@ -28,14 +31,19 @@ export const MAIN_NAV_ROUTES: NavRoute[] = [
 export interface SidebarProps {
   currentPath?: string;
   user?: { name: string; email: string };
+  logoutAction?: (formData: FormData) => void | Promise<void>;
   className?: string;
 }
 
 export function Sidebar({
-  currentPath = '/dashboard',
+  currentPath,
   user = { name: 'Demo User', email: 'demo@wealthtrack.dev' },
+  logoutAction,
   className,
 }: SidebarProps) {
+  const pathname = usePathname();
+  const activePath = currentPath || pathname || '/dashboard';
+
   return (
     <aside
       className={cn(
@@ -60,14 +68,19 @@ export function Sidebar({
               href={route.href}
               label={route.label}
               icon={route.icon}
-              active={currentPath === route.href || currentPath.startsWith(`${route.href}/`)}
+              active={activePath === route.href || activePath.startsWith(`${route.href}/`)}
             />
           ))}
         </nav>
       </div>
 
       <div className="border-t border-border pt-4">
-        <UserInfo name={user.name} email={user.email} />
+        <UserInfo
+          name={user.name}
+          email={user.email}
+          logoutAction={logoutAction}
+          dropdownPosition="top"
+        />
       </div>
     </aside>
   );

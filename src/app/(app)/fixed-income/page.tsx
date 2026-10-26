@@ -4,7 +4,6 @@ import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
 import { getBondInstruments } from '@/lib/db/bonds';
 import { computeHoldings } from '@/lib/finance/holdings';
 import { getPrices } from '@/lib/services/price.service';
-import { DashboardLayout } from '@/components/templates';
 import { FixedIncomeClient } from './FixedIncomeClient';
 import type { BondModel, BondHoldingItem } from '@/lib/finance/bonds';
 
@@ -101,19 +100,11 @@ export default async function FixedIncomePage() {
   }));
 
   return (
-    <DashboardLayout
-      currentPath="/fixed-income"
-      user={{
-        name: session.user.name || 'User',
-        email: session.user.email || '',
-      }}
-    >
-      <FixedIncomeClient
-        bonds={bondModels}
-        heldBonds={heldBonds}
-        accounts={accountOptions}
-      />
-    </DashboardLayout>
+    <FixedIncomeClient
+      bonds={bondModels}
+      heldBonds={heldBonds}
+      accounts={accountOptions}
+    />
   );
 }
 

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
-import { DashboardLayout } from '@/components/templates';
 import { TransactionsClient } from './TransactionsClient';
 import type { TransactionViewModel } from '@/lib/view-models';
 
@@ -43,18 +42,10 @@ export default async function TransactionsPage() {
   }));
 
   return (
-    <DashboardLayout
-      currentPath="/transactions"
-      user={{
-        name: session.user.name || 'User',
-        email: session.user.email || '',
-      }}
-    >
-      <TransactionsClient
-        initialTransactions={transactionViewModels}
-        accounts={accountOptions}
-      />
-    </DashboardLayout>
+    <TransactionsClient
+      initialTransactions={transactionViewModels}
+      accounts={accountOptions}
+    />
   );
 }
 

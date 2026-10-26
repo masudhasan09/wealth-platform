@@ -45,7 +45,8 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `CurrencyInput` | Molecule | Form input with dollar prefix and decimal stepping | `currencySymbol`, `currencyCode` | TransactionForm, PropertyForm |
 | `Pagination` | Molecule | Page navigation controls | `page`, `totalPages`, `onPageChange` | Data tables, ledger views |
 | `NavItem` | Molecule | Nav link with icon, label, and active styling | `href`, `label`, `icon`, `active` | Sidebar, Navbar |
-| `UserInfo` | Molecule | User avatar, name, and email block | `name`, `email`, `avatarSrc` | Sidebar, User menus |
+| `UserInfo` | Molecule | User avatar, name, and email block with keyboard-accessible dropdown menu, Settings link, and LogoutButton | `name`, `email`, `avatarSrc`, `logoutAction`, `dropdownPosition`, `showDropdown` | Sidebar, Navbar, User menus |
+| `LogoutButton` | Molecule | Form button executing POST-only logout server action with loading state | `action`, `variant`, `size`, `disabled`, `label` | UserInfo, Sidebar, Mobile menu |
 | `ChartContainer` | Molecule | Card wrapper for Recharts visualizations | `title`, `subtitle`, `action`, `height` | AllocationChart, NetWorthChart |
 | `ConfirmDialog` | Molecule | Native accessible `<dialog>` confirmation modal | `open`, `title`, `description`, `onConfirm`, `onCancel` | VoidTransactionDialog, Deletes |
 | `Stepper` | Molecule | Multi-step progress indicator | `steps`, `currentStep` | CsvImportWizard |

@@ -10,6 +10,7 @@ import { saveSnapshot, getSnapshots } from '@/lib/db/net-worth';
 import { prisma } from '@/lib/db/client';
 import type { SnapshotRow } from '@/lib/db/net-worth';
 import type { ValuedPosition, NetWorthResult } from '@/lib/finance/valuation';
+import { getFreshnessLabel } from '@/lib/utils/freshness';
 
 export interface NetWorthData {
   result: NetWorthResult;
@@ -67,6 +68,99 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
 
     // Value portfolio
     const { positions, unvaluedSymbols } = valuePortfolio(holdings, priceMap);
+
+    // -----------------------------------------------------------------------
+    // Inject real estate valuations from ValuationMark as synthetic positions.
+    // Real estate is not tracked via buy/sell transactions — it uses appraisals.
+    // We pick the latest ValuationMark per instrument owned by this user's
+    // property accounts and create a synthetic ValuedPosition for each.
+    // -----------------------------------------------------------------------
+    const propertyAccounts = await prisma.account.findMany({
+      where: { userId, type: 'property' },
+      select: { id: true },
+    });
+    const propertyAccountIds = propertyAccounts.map((a) => a.id);
+
+    if (propertyAccountIds.length > 0) {
+      // Get all real_estate instruments linked to this user's property accounts
+      const propInstruments = await prisma.instrument.findMany({
+        where: {
+          assetClass: 'real_estate',
+          OR: [
+            { propertyDetails: { isNot: null } },
+          ],
+        },
+        include: {
+          propertyDetails: true,
+          valuationMarks: {
+            orderBy: { date: 'desc' },
+            take: 1,
+          },
+        },
+      });
+
+      // Find which account each instrument belongs to
+      const txAccountMap = new Map<string, string>();
+      for (const tx of txRows) {
+        if (tx.instrumentId && !txAccountMap.has(tx.instrumentId)) {
+          txAccountMap.set(tx.instrumentId, tx.accountId);
+        }
+      }
+
+      // Also query property accounts for instruments via liabilities or direct link
+      const propLiabilities = await prisma.liability.findMany({
+        where: { accountId: { in: propertyAccountIds } },
+        select: { accountId: true, linkedInstrumentId: true },
+      });
+      for (const l of propLiabilities) {
+        if (l.linkedInstrumentId) {
+          txAccountMap.set(l.linkedInstrumentId, l.accountId);
+        }
+      }
+
+      const now = new Date();
+      for (const inst of propInstruments) {
+        const latestMark = inst.valuationMarks[0];
+        if (!latestMark) continue;
+
+        // Determine ownership percentage (default 100%)
+        const ownershipPct = inst.propertyDetails?.ownershipPct
+          ? new Decimal(inst.propertyDetails.ownershipPct)
+          : new Decimal(1);
+
+        const appraisalValue = new Decimal(latestMark.value).times(ownershipPct);
+        const purchasePrice = inst.propertyDetails?.purchasePrice
+          ? new Decimal(inst.propertyDetails.purchasePrice).times(ownershipPct)
+          : appraisalValue;
+
+        // Resolve which account this property belongs to
+        const accountId =
+          txAccountMap.get(inst.id) ??
+          propertyAccountIds[0]; // fallback to first property account
+
+        const syntheticPosition: ValuedPosition = {
+          accountId,
+          instrumentId: inst.id,
+          symbol: inst.symbol ?? inst.name,
+          assetClass: 'real_estate',
+          quantity: '1.00000000',
+          averageCost: purchasePrice.toFixed(4),
+          totalCost: purchasePrice.toFixed(2),
+          currentPrice: appraisalValue.toFixed(4),
+          marketValue: appraisalValue.toFixed(2),
+          unrealisedPnL: appraisalValue.minus(purchasePrice).toFixed(2),
+          unrealisedPnLPct: purchasePrice.isZero()
+            ? '0.0000'
+            : appraisalValue.minus(purchasePrice).div(purchasePrice).times(100).toFixed(4),
+          priceSource: 'appraisal',
+          priceAsOf: latestMark.date,
+          isPriceStale: (now.getTime() - latestMark.date.getTime()) > 365 * 24 * 60 * 60 * 1000,
+          freshnessLabel: getFreshnessLabel(latestMark.date),
+        };
+
+        positions.push(syntheticPosition);
+      }
+    }
 
     // Compute cash balances
     const rawCash = computeCashBalances(enriched);

@@ -4,7 +4,6 @@ import { getTransactionsByUserId } from '@/lib/db/transactions';
 import { computeHoldings } from '@/lib/finance/holdings';
 import { getLatestPrice, getLatestPriceById } from '@/lib/db/prices';
 import { prisma } from '@/lib/db/client';
-import { DashboardLayout } from '@/components/templates';
 import { PricesClient } from './PricesClient';
 
 export const dynamic = 'force-dynamic';
@@ -63,15 +62,5 @@ export default async function PricesPage() {
     }),
   );
 
-  return (
-    <DashboardLayout
-      currentPath="/prices"
-      user={{
-        name: session.user.name ?? 'User',
-        email: session.user.email ?? '',
-      }}
-    >
-      <PricesClient instruments={instrumentPrices} />
-    </DashboardLayout>
-  );
+  return <PricesClient instruments={instrumentPrices} />;
 }

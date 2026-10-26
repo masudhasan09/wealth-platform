@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
 import { computeCashBalances } from '@/lib/finance';
-import { DashboardLayout } from '@/components/templates';
 import { AccountsClient } from './AccountsClient';
 import type { AccountViewModel } from '@/lib/view-models';
 
@@ -44,16 +43,6 @@ export default async function AccountsPage() {
     cashBalance: cashBalances[acct.id] || '0',
   }));
 
-  return (
-    <DashboardLayout
-      currentPath="/accounts"
-      user={{
-        name: session.user.name || 'User',
-        email: session.user.email || '',
-      }}
-    >
-      <AccountsClient initialAccounts={accountViewModels} />
-    </DashboardLayout>
-  );
+  return <AccountsClient initialAccounts={accountViewModels} />;
 }
 
