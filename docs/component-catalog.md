@@ -71,6 +71,20 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `BondDetailsPanel` | Organism | Inspector panel with StatCards for accrued interest, current yield, and YTM | `bond`, `currentPrice`, `asOfDate` | FixedIncomeClient |
 | `CouponScheduleTable` | Organism | Data table displaying projected coupon payment cash flows and status | `bond`, `onRecordCoupon` | FixedIncomeClient |
 | `MaturityLadder` | Organism | Maturity bucket breakdown chart and table across tenors (<1y, 1-3y, 3-5y, 5-10y, 10y+) | `bonds`, `asOfDate` | FixedIncomeClient |
+| `DashboardSection` | Organism | Titled card section container with CardHeader for dashboard blocks | `title`, `subtitle`, `action`, `children` | DashboardClient |
+| `AllocationChart` | Organism | Interactive asset class and account allocation donut chart | `assetClassData`, `accountTypeData`, `groupBy` | DashboardClient |
+| `IncomeChart` | Organism | Historical monthly income cash flow bar chart | `data`, `height` | DashboardClient |
+| `TopHoldings` | Organism | Table showing largest positions by portfolio weight | `holdings`, `limit` | DashboardClient |
+| `PerformancePanel` | Organism | Return metrics display (TWR, MWR / XIRR) with illiquid asset disclaimer | `twr`, `mwr`, `hasAppraisedAssets` | DashboardClient |
+| `PropertyForm` | Organism | Real estate property acquisition entry form | `onSubmit`, `isLoading`, `onCancel` | RealEstateClient |
+| `ValuationHistory` | Organism | Chronological appraisal marks list and entry form | `propertyId`, `valuationMarks`, `onAddMark` | RealEstateClient |
+| `MortgagePanel` | Organism | Mortgage overview and liability creation form | `liability`, `onCreateMortgage` | RealEstateClient |
+| `AmortizationTable` | Organism | Monthly loan amortization schedule table with pagination | `schedule` | RealEstateClient |
+| `TaxLotTable` | Organism | Table showing open FIFO tax lots, remaining quantities, cost basis per unit, and holding term badges | `lots`, `emptyAction` | GainsClient |
+| `RealizedGainsReport` | Organism | Schedule D tax-year capital gains report with StatCards and closed lots table | `summary`, `availableYears`, `selectedYear`, `onYearChange` | GainsClient |
+| `CsvImportWizard` | Organism | 3-step CSV upload, validation, duplicate detection, and ledger commit wizard | `onCommit`, `existingTransactions` | ImportClient |
+| `RiskPanel` | Organism | Portfolio risk dashboard with diversification score (0-100), concentration bar chart, and deterministic rule insights | `riskData` | RiskClient |
+| `ReportExportPanel` | Organism | Audit-ready financial report generator with CSV downloads and print/PDF ReportLayout preview | `user`, `holdings`, `gainsSummary`, `netWorthTotal` | ReportsClient |
 | `Sidebar` | Organism | Desktop navigation drawer with links and user info | `currentPath`, `user` | DashboardLayout |
 | `Header` | Organism | Top application bar with search and freshness indicator | `lastUpdated`, `source`, `onSearch` | DashboardLayout |
 | `Navbar` | Organism | Top navigation bar with logo and action slots | `actions` | Marketing / alternative layouts |

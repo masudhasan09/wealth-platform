@@ -158,7 +158,12 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
           freshnessLabel: getFreshnessLabel(latestMark.date),
         };
 
-        positions.push(syntheticPosition);
+        const existingIdx = positions.findIndex((p) => p.instrumentId === inst.id);
+        if (existingIdx >= 0) {
+          positions[existingIdx] = syntheticPosition;
+        } else {
+          positions.push(syntheticPosition);
+        }
       }
     }
 

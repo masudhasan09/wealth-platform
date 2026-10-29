@@ -1,1 +1,2 @@
-// src/components/organisms/gains barrel placeholder
+export * from './TaxLotTable';
+export * from './RealizedGainsReport';

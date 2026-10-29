@@ -61,6 +61,9 @@ import {
   ValuationHistory,
   MortgagePanel,
   AmortizationTable,
+  TaxLotTable,
+  RealizedGainsReport,
+  RiskPanel,
 } from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
@@ -762,6 +765,117 @@ export default function ComponentGalleryPage() {
             annualInterestRatePct="6.25"
             termMonths={360}
             startDate="2023-01-01"
+          />
+        </div>
+      </section>
+
+      {/* PHASE 5: TAX LOTS, CAPITAL GAINS & RISK */}
+      <section className="space-y-4">
+        <Heading level="h2">Phase 5: Capital Gains, Tax Lots & Risk</Heading>
+        <div className="space-y-6">
+          <TaxLotTable
+            lots={[
+              {
+                id: 'lot-demo-1',
+                transactionId: 'tx-1',
+                accountId: 'acc-1',
+                accountName: 'Brokerage Account',
+                instrumentId: 'inst-1',
+                symbol: 'AAPL',
+                name: 'Apple Inc.',
+                openDate: new Date('2024-01-15'),
+                originalQuantity: '10.00000000',
+                remainingQuantity: '10.00000000',
+                costBasisPerUnit: '150.00',
+                totalCostBasis: '1500.00',
+                currentPrice: '185.00',
+                currentValue: '1850.00',
+                unrealizedGainLoss: '350.00',
+                unrealizedGainLossPct: '23.33',
+                term: 'long_term',
+                holdingDays: 410,
+              },
+            ]}
+          />
+
+          <RealizedGainsReport
+            summary={{
+              taxYear: 2025,
+              shortTermProceeds: '2500.00',
+              shortTermCostBasis: '2000.00',
+              shortTermGain: '500.00',
+              longTermProceeds: '5000.00',
+              longTermCostBasis: '3200.00',
+              longTermGain: '1800.00',
+              totalProceeds: '7500.00',
+              totalCostBasis: '5200.00',
+              totalGain: '2300.00',
+              lots: [
+                {
+                  id: 'realized-demo-1',
+                  buyTransactionId: 'tx-1',
+                  sellTransactionId: 'tx-2',
+                  accountId: 'acc-1',
+                  instrumentId: 'inst-1',
+                  symbol: 'NVDA',
+                  name: 'NVIDIA Corp',
+                  openDate: new Date('2024-01-10'),
+                  closeDate: new Date('2025-03-01'),
+                  quantity: '5.00000000',
+                  costBasis: '1500.00',
+                  proceeds: '3000.00',
+                  gainLoss: '1500.00',
+                  term: 'long_term',
+                  holdingDays: 415,
+                },
+              ],
+            }}
+          />
+
+          <RiskPanel
+            riskData={{
+              totalPortfolioValue: '125000.00',
+              topHoldingPct: '28.00',
+              topHoldingSymbol: 'AAPL',
+              top5Pct: '72.00',
+              diversificationScore: 74,
+              diversificationRating: 'Moderate',
+              estimatedAnnualVolatility: '14.80%',
+              assetClassCount: 4,
+              positionCount: 12,
+              topHoldings: [
+                {
+                  instrumentId: 'inst-1',
+                  symbol: 'AAPL',
+                  name: 'Apple Inc.',
+                  assetClass: 'equity',
+                  value: '35000.00',
+                  percentage: '28.00',
+                },
+                {
+                  instrumentId: 'inst-2',
+                  symbol: 'MSFT',
+                  name: 'Microsoft Corp',
+                  assetClass: 'equity',
+                  value: '22000.00',
+                  percentage: '17.60',
+                },
+              ],
+              assetClassBreakdown: [
+                { assetClass: 'equity', value: '75000.00', percentage: '60.00' },
+                { assetClass: 'fixed_income', value: '30000.00', percentage: '24.00' },
+                { assetClass: 'crypto', value: '12000.00', percentage: '9.60' },
+                { assetClass: 'cash', value: '8000.00', percentage: '6.40' },
+              ],
+              deterministicInsights: [
+                {
+                  id: 'demo-insight-1',
+                  type: 'success',
+                  title: 'Multi-Asset Spread',
+                  description: 'Assets distributed across 4 distinct asset classes.',
+                },
+              ],
+            }}
           />
         </div>
       </section>

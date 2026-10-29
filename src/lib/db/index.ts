@@ -7,3 +7,4 @@ export * from './prices';
 export * from './net-worth';
 export * from './bonds';
 export * from './real-estate';
+export * from './tax-lots';

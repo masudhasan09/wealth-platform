@@ -46,12 +46,12 @@ export function TopHoldings({ holdings, className }: TopHoldingsProps) {
           </tr>
         </thead>
         <tbody>
-          {holdings.map((h) => {
+          {holdings.map((h, idx) => {
             const pnl = parseFloat(h.unrealisedPnL);
             const pnlPct = parseFloat(h.unrealisedPnLPct);
 
             return (
-              <tr key={h.symbol} className="border-b border-border hover:bg-surface-muted transition-colors">
+              <tr key={`${h.symbol}-${idx}`} className="border-b border-border hover:bg-surface-muted transition-colors">
                 <td className="px-4 py-3">
                   <div className="flex flex-col">
                     <span className="font-mono font-bold text-text">{h.symbol}</span>
