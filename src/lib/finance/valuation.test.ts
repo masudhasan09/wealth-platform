@@ -186,5 +186,20 @@ describe('computeNetWorth', () => {
     const result = computeNetWorth(positions, new Map([['acct-1', '-200.00']]));
     expect(result.total).toBe('800.00');
   });
+
+  it('subtracts total liabilities from gross assets to yield net worth', () => {
+    // Assets: $500,000 Property + $50,000 Cash = $550,000
+    // Liabilities: $350,000 Mortgage
+    // Net Worth: $550,000 - $350,000 = $200,000
+    const positions: ValuedPosition[] = [
+      makePosition({ symbol: 'PROP-1', accountId: 'acct-1', assetClass: 'real_estate', marketValue: '500000.00' }),
+    ];
+    const cash = new Map([['acct-1', '50000.00']]);
+    const result = computeNetWorth(positions, cash, [], '350000.00');
+
+    expect(result.grossAssets).toBe('550000.00');
+    expect(result.totalLiabilities).toBe('350000.00');
+    expect(result.total).toBe('200000.00');
+  });
 });
 

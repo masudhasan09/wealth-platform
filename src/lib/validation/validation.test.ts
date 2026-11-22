@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   loginSchema,
   registerSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   accountSchema,
   transactionSchema,
   voidTransactionSchema,
@@ -35,6 +39,71 @@ describe('Validation Schemas', () => {
       if (!res.success) {
         expect(res.error.issues[0].message).toContain('at least 8 characters');
       }
+    });
+
+    it('validates profile name updates', () => {
+      const valid = updateProfileSchema.safeParse({ name: 'Alice Smith' });
+      expect(valid.success).toBe(true);
+
+      const invalid = updateProfileSchema.safeParse({ name: ' ' });
+      expect(invalid.success).toBe(false);
+    });
+
+    it('validates password change requirements and confirmation matching', () => {
+      const valid = changePasswordSchema.safeParse({
+        currentPassword: 'oldPassword123',
+        newPassword: 'newSecretPassword123',
+        confirmPassword: 'newSecretPassword123',
+      });
+      expect(valid.success).toBe(true);
+
+      const mismatch = changePasswordSchema.safeParse({
+        currentPassword: 'oldPassword123',
+        newPassword: 'newSecretPassword123',
+        confirmPassword: 'differentPassword123',
+      });
+      expect(mismatch.success).toBe(false);
+      if (!mismatch.success) {
+        expect(mismatch.error.issues[0].message).toContain('do not match');
+      }
+
+      const tooShort = changePasswordSchema.safeParse({
+        currentPassword: 'oldPassword123',
+        newPassword: 'short',
+        confirmPassword: 'short',
+      });
+      expect(tooShort.success).toBe(false);
+    });
+
+    it('validates forgot password email input', () => {
+      const valid = forgotPasswordSchema.safeParse({ email: 'user@example.com' });
+      expect(valid.success).toBe(true);
+
+      const invalid = forgotPasswordSchema.safeParse({ email: 'not-an-email' });
+      expect(invalid.success).toBe(false);
+    });
+
+    it('validates reset password inputs', () => {
+      const valid = resetPasswordSchema.safeParse({
+        token: 'valid-reset-token-123',
+        password: 'newSecretPassword123',
+        confirmPassword: 'newSecretPassword123',
+      });
+      expect(valid.success).toBe(true);
+
+      const mismatch = resetPasswordSchema.safeParse({
+        token: 'valid-reset-token-123',
+        password: 'newSecretPassword123',
+        confirmPassword: 'differentPassword123',
+      });
+      expect(mismatch.success).toBe(false);
+
+      const missingToken = resetPasswordSchema.safeParse({
+        token: '',
+        password: 'newSecretPassword123',
+        confirmPassword: 'newSecretPassword123',
+      });
+      expect(missingToken.success).toBe(false);
     });
   });
 

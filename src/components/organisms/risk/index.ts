@@ -1,1 +1,1 @@
-// src/components/organisms/risk barrel placeholder
+export * from './RiskPanel';

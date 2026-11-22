@@ -57,3 +57,6 @@ export function formatMoney(
 
   return formatter.format(num);
 }
+
+export const formatCurrency = formatMoney;
+

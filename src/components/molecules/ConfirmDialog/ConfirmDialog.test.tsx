@@ -1,12 +1,7 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { ConfirmDialog } from './ConfirmDialog';
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
 
 describe('ConfirmDialog', () => {
   it('renders title and description when open', () => {
@@ -38,5 +33,34 @@ describe('ConfirmDialog', () => {
     const confirmBtn = screen.getByRole('button', { name: /yes, delete/i });
     fireEvent.click(confirmBtn);
     expect(handleConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render when closed', () => {
+    const { container } = render(
+      <ConfirmDialog
+        open={false}
+        title="Delete"
+        description="Delete item"
+        onConfirm={() => {}}
+        onCancel={() => {}}
+      />
+    );
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('calls onCancel when backdrop is clicked', () => {
+    const handleCancel = vi.fn();
+    render(
+      <ConfirmDialog
+        open={true}
+        title="Remove"
+        description="Remove this item?"
+        onConfirm={() => {}}
+        onCancel={handleCancel}
+      />
+    );
+    const backdrop = screen.getByRole('presentation');
+    fireEvent.click(backdrop);
+    expect(handleCancel).toHaveBeenCalledTimes(1);
   });
 });

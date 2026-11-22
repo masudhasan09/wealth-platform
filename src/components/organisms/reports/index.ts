@@ -1,1 +1,1 @@
-// src/components/organisms/reports barrel placeholder
+export * from './ReportExportPanel';

@@ -1,14 +1,15 @@
 import React from 'react';
 import { Sidebar } from '@/components/organisms/layout/Sidebar';
-import { Header } from '@/components/organisms/layout/Header';
+import { Navbar } from '@/components/organisms/layout/Navbar';
 import { Footer } from '@/components/organisms/layout/Footer';
 import { cn } from '@/lib/utils/cn';
 
 export interface DashboardLayoutProps {
   currentPath?: string;
   user?: { name: string; email: string };
+  logoutAction?: (formData: FormData) => void | Promise<void>;
   lastUpdated?: Date | string;
-  onSearch?: (query: string) => void;
+  isAdmin?: boolean;
   className?: string;
   children: React.ReactNode;
 }
@@ -16,17 +17,28 @@ export interface DashboardLayoutProps {
 export function DashboardLayout({
   currentPath,
   user,
-  lastUpdated,
-  onSearch,
+  logoutAction,
+  isAdmin,
   className,
   children,
 }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-row">
-      <Sidebar currentPath={currentPath} user={user} className="hidden md:flex shrink-0" />
+      <Sidebar
+        currentPath={currentPath}
+        user={user}
+        logoutAction={logoutAction}
+        isAdmin={isAdmin}
+        className="hidden md:flex shrink-0"
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Header lastUpdated={lastUpdated} onSearch={onSearch} />
+        <Navbar
+          user={user}
+          logoutAction={logoutAction}
+          currentPath={currentPath}
+          isAdmin={isAdmin}
+        />
         <main className={cn('flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto', className)}>
           {children}
         </main>

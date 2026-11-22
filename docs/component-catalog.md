@@ -45,10 +45,12 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `CurrencyInput` | Molecule | Form input with dollar prefix and decimal stepping | `currencySymbol`, `currencyCode` | TransactionForm, PropertyForm |
 | `Pagination` | Molecule | Page navigation controls | `page`, `totalPages`, `onPageChange` | Data tables, ledger views |
 | `NavItem` | Molecule | Nav link with icon, label, and active styling | `href`, `label`, `icon`, `active` | Sidebar, Navbar |
-| `UserInfo` | Molecule | User avatar, name, and email block | `name`, `email`, `avatarSrc` | Sidebar, User menus |
+| `UserInfo` | Molecule | User avatar, name, and email block with keyboard-accessible dropdown menu, Settings link, and LogoutButton | `name`, `email`, `avatarSrc`, `logoutAction`, `dropdownPosition`, `showDropdown` | Sidebar, Navbar, User menus |
+| `LogoutButton` | Molecule | Form button executing POST-only logout server action with loading state | `action`, `variant`, `size`, `disabled`, `label` | UserInfo, Sidebar, Mobile menu |
 | `ChartContainer` | Molecule | Card wrapper for Recharts visualizations | `title`, `subtitle`, `action`, `height` | AllocationChart, NetWorthChart |
 | `ConfirmDialog` | Molecule | Native accessible `<dialog>` confirmation modal | `open`, `title`, `description`, `onConfirm`, `onCancel` | VoidTransactionDialog, Deletes |
 | `Stepper` | Molecule | Multi-step progress indicator | `steps`, `currentStep` | CsvImportWizard |
+| `ProviderStatusCard` | Molecule | Market data source card with connection health status, priority badge, masked key preview, and action buttons | `provider`, `name`, `kind`, `requiresKey`, `isConfigured`, `keyMasked`, `enabled`, `priority`, `onEditKey`, `onRemoveKey`, `onToggleEnabled`, `onTestConnection` | ProviderList, Admin |
 
 ---
 
@@ -70,6 +72,23 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `BondDetailsPanel` | Organism | Inspector panel with StatCards for accrued interest, current yield, and YTM | `bond`, `currentPrice`, `asOfDate` | FixedIncomeClient |
 | `CouponScheduleTable` | Organism | Data table displaying projected coupon payment cash flows and status | `bond`, `onRecordCoupon` | FixedIncomeClient |
 | `MaturityLadder` | Organism | Maturity bucket breakdown chart and table across tenors (<1y, 1-3y, 3-5y, 5-10y, 10y+) | `bonds`, `asOfDate` | FixedIncomeClient |
+| `DashboardSection` | Organism | Titled card section container with CardHeader for dashboard blocks | `title`, `subtitle`, `action`, `children` | DashboardClient |
+| `AllocationChart` | Organism | Interactive asset class and account allocation donut chart | `assetClassData`, `accountTypeData`, `groupBy` | DashboardClient |
+| `IncomeChart` | Organism | Historical monthly income cash flow bar chart | `data`, `height` | DashboardClient |
+| `TopHoldings` | Organism | Table showing largest positions by portfolio weight | `holdings`, `limit` | DashboardClient |
+| `PerformancePanel` | Organism | Return metrics display (TWR, MWR / XIRR) with illiquid asset disclaimer | `twr`, `mwr`, `hasAppraisedAssets` | DashboardClient |
+| `PropertyForm` | Organism | Real estate property acquisition entry form | `onSubmit`, `isLoading`, `onCancel` | RealEstateClient |
+| `ValuationHistory` | Organism | Chronological appraisal marks list and entry form | `propertyId`, `valuationMarks`, `onAddMark` | RealEstateClient |
+| `MortgagePanel` | Organism | Mortgage overview and liability creation form | `liability`, `onCreateMortgage` | RealEstateClient |
+| `AmortizationTable` | Organism | Monthly loan amortization schedule table with pagination | `schedule` | RealEstateClient |
+| `TaxLotTable` | Organism | Table showing open FIFO tax lots, remaining quantities, cost basis per unit, and holding term badges | `lots`, `emptyAction` | GainsClient |
+| `RealizedGainsReport` | Organism | Schedule D tax-year capital gains report with StatCards and closed lots table | `summary`, `availableYears`, `selectedYear`, `onYearChange` | GainsClient |
+| `CsvImportWizard` | Organism | 3-step CSV upload, validation, duplicate detection, and ledger commit wizard | `onCommit`, `existingTransactions` | ImportClient |
+| `RiskPanel` | Organism | Portfolio risk dashboard with diversification score (0-100), concentration bar chart, and deterministic rule insights | `riskData` | RiskClient |
+| `ReportExportPanel` | Organism | Audit-ready financial report generator with CSV downloads and print/PDF ReportLayout preview | `user`, `holdings`, `gainsSummary`, `netWorthTotal` | ReportsClient |
+| `ApiKeyForm` | Organism | Form modal for inputting and rotating secret API keys with encrypted storage | `provider`, `providerName`, `onSave`, `onCancel` | DataSourcesClient |
+| `ProviderList` | Organism | Responsive grid of provider status cards with connection testing and toggle actions | `providers`, `onEditKey`, `onRemoveKey`, `onToggleEnabled`, `onTestConnection` | DataSourcesClient |
+| `AuditLogTable` | Organism | Immutable security audit ledger table showing actor, action, target, timestamp, and metadata | `entries` | DataSourcesClient |
 | `Sidebar` | Organism | Desktop navigation drawer with links and user info | `currentPath`, `user` | DashboardLayout |
 | `Header` | Organism | Top application bar with search and freshness indicator | `lastUpdated`, `source`, `onSearch` | DashboardLayout |
 | `Navbar` | Organism | Top navigation bar with logo and action slots | `actions` | Marketing / alternative layouts |
@@ -85,3 +104,4 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `DashboardLayout` | Template | Primary app chrome with sidebar, header, and footer | `currentPath`, `user`, `children` | All authenticated app pages |
 | `PageLayout` | Template | Interior page header with actions and breadcrumbs | `title`, `description`, `actions`, `children` | All app pages |
 | `ReportLayout` | Template | Print-friendly report layout with header and disclaimer | `title`, `generatedDate`, `user`, `children` | Report export pages |
+| `AdminLayout` | Template | Dedicated administrative chrome with security notice banner, sidebar, header, and strict isolation | `currentPath`, `user`, `logoutAction`, `children` | Admin pages (/admin/*) |

@@ -2,3 +2,4 @@ export * from './AuthLayout';
 export * from './DashboardLayout';
 export * from './PageLayout';
 export * from './ReportLayout';
+export * from './AdminLayout';

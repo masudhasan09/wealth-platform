@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { TransactionTable, TransactionForm, VoidTransactionDialog } from '@/components/organisms/transactions';
 import { SearchBox } from '@/components/molecules/SearchBox';
 import { Button } from '@/components/atoms/Button';
+import { Icon } from '@/components/atoms/Icon';
 import { Heading } from '@/components/atoms/Heading';
 import { Text } from '@/components/atoms/Text';
 import { createTransactionAction, voidTransactionAction } from '@/app/actions/transactions';
@@ -65,13 +67,21 @@ export function TransactionsClient({
           </Text>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => setShowAddModal(true)}
-          disabled={accounts.length === 0}
-        >
-          + Record Transaction
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link href="/transactions/import">
+            <Button variant="secondary" size="md">
+              <Icon name="Upload" size="sm" className="mr-1.5" />
+              Import CSV
+            </Button>
+          </Link>
+          <Button
+            variant="primary"
+            onClick={() => setShowAddModal(true)}
+            disabled={accounts.length === 0}
+          >
+            + Record Transaction
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

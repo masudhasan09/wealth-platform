@@ -21,6 +21,8 @@ export interface FinanceTransaction {
   date: Date;
   voidedAt?: Date | null;
   voidedReason?: string | null;
+  /** Asset class of the instrument, when known. Used to decide cash settlement. */
+  assetClass?: string;
 }
 
 export interface ComputedHolding {
@@ -180,8 +182,14 @@ export function computeHoldings(
 
 /**
  * Computes cash balances per account from transactions.
- * Supports: deposit, withdrawal, buy, sell, dividend, fee, interest.
- * Ignores voided transactions.
+ * Supports: deposit, withdrawal, buy, sell, dividend, coupon, maturity,
+ * transfer_in, transfer_out, crypto_fee, interest, fee, rental_income,
+ * property_expense, return_of_capital and reinvestment.
+ * Ignores voided transactions and voided account entries.
+ *
+ * Asset purchases that are not settled in cash (real estate acquisitions,
+ * which are recorded as an ownership share rather than a cash trade) do not
+ * move the cash balance.
  */
 export function computeCashBalances(
   transactions: FinanceTransaction[]
@@ -195,6 +203,7 @@ export function computeCashBalances(
     const qty = new Decimal(tx.quantity || 0);
     const price = new Decimal(tx.price || 0);
     const fee = new Decimal(tx.fee || 0);
+    const isCashSettledTrade = (tx.assetClass ?? '').toLowerCase() !== 'real_estate';
 
     let updated = current;
 
@@ -212,15 +221,56 @@ export function computeCashBalances(
         break;
 
       case 'buy':
-        // Cash paid for asset + transaction fee
-        const buyCost = qty.times(price).plus(fee);
-        updated = current.minus(buyCost);
+        // Cash paid for asset + transaction fee.
+        // Real-estate acquisition is not a cash trade: the position is booked
+        // as an ownership share, so it must not drain the cash balance.
+        if (isCashSettledTrade) {
+          const buyCost = qty.times(price).plus(fee);
+          updated = current.minus(buyCost);
+        }
         break;
 
       case 'sell':
         // Cash received from asset sale minus fee
-        const sellProceeds = qty.times(price).minus(fee);
-        updated = current.plus(sellProceeds);
+        if (isCashSettledTrade) {
+          const sellProceeds = qty.times(price).minus(fee);
+          updated = current.plus(sellProceeds);
+        }
+        break;
+
+      case 'transfer_in':
+        // Units moved in from outside the platform; no cash movement.
+        break;
+
+      case 'transfer_out':
+        // Units moved out of the platform; no cash movement.
+        break;
+
+      case 'rental_income':
+        // Property rent received
+        updated = current.plus(amount).minus(fee);
+        break;
+
+      case 'property_expense':
+        // Property tax, maintenance, insurance paid out
+        updated = current.minus(amount.isZero() ? fee : amount);
+        break;
+
+      case 'return_of_capital':
+        // Distribution that reduces cost basis but is still paid in cash
+        updated = current.plus(amount).minus(fee);
+        break;
+
+      case 'reinvestment':
+        // Dividend immediately reinvested: income in, purchase out — nets to zero.
+        break;
+
+      case 'split':
+        // Share split: quantity changes, cash does not.
+        break;
+
+      case 'journal':
+        // Internal bookkeeping entry: no cash movement.
         break;
 
       case 'dividend':

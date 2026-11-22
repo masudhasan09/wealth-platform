@@ -41,6 +41,9 @@ import {
   ChartContainer,
   ConfirmDialog,
   Stepper,
+  Tabs,
+  LogoutButton,
+  ProviderStatusCard,
 } from '@/components/molecules';
 import {
   DataTable,
@@ -50,6 +53,21 @@ import {
   BondDetailsPanel,
   CouponScheduleTable,
   MaturityLadder,
+  DashboardSection,
+  AllocationChart,
+  IncomeChart,
+  PerformancePanel,
+  TopHoldings,
+  PropertyForm,
+  ValuationHistory,
+  MortgagePanel,
+  AmortizationTable,
+  TaxLotTable,
+  RealizedGainsReport,
+  RiskPanel,
+  ProviderList,
+  ApiKeyForm,
+  AuditLogTable,
 } from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
@@ -352,11 +370,20 @@ export default function ComponentGalleryPage() {
 
           <Divider />
 
-          <div className="flex items-center justify-between">
-            <UserInfo name="Demo User" email="demo@wealthtrack.dev" />
-            <Button variant="danger" size="sm" onClick={() => setDialogOpen(true)}>
-              Open Confirm Dialog
-            </Button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border rounded-lg bg-surface">
+            <div className="w-64">
+              <UserInfo
+                name="Demo User"
+                email="demo@wealthtrack.dev"
+                dropdownPosition="bottom"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <LogoutButton variant="secondary" />
+              <Button variant="danger" size="sm" onClick={() => setDialogOpen(true)}>
+                Open Confirm Dialog
+              </Button>
+            </div>
           </div>
 
           <Pagination
@@ -587,6 +614,379 @@ export default function ComponentGalleryPage() {
               },
             ]}
             asOfDate="2024-01-01T00:00:00.000Z"
+          />
+        </div>
+      </section>
+
+      {/* ─── Phase 4: Dashboard & Real Estate Organisms ──────────────── */}
+      <section className="space-y-4">
+        <Heading level="h2">Phase 4: Dashboard &amp; Performance Organisms</Heading>
+        <div className="space-y-6">
+          <DashboardSection
+            title="Performance Summary"
+            subtitle="Time-weighted and money-weighted return calculations"
+          >
+            <PerformancePanel
+              twrPct={14.8}
+              mwrPct={16.2}
+              liquidReturnPct={18.5}
+              appraisedReturnPct={5.2}
+            />
+          </DashboardSection>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardSection title="Asset Allocation Chart" subtitle="Donut chart with groupBy toggle">
+              <AllocationChart
+                assetClassData={[
+                  { id: '1', label: 'Equities & ETFs', value: 450000, color: 'var(--asset-equity)' },
+                  { id: '2', label: 'Digital Assets', value: 120000, color: 'var(--asset-crypto)' },
+                  { id: '3', label: 'Fixed Income', value: 200000, color: 'var(--asset-fixed-income)' },
+                  { id: '4', label: 'Real Estate', value: 650000, color: 'var(--asset-real-estate)' },
+                  { id: '5', label: 'Cash & Reserves', value: 80000, color: 'var(--asset-cash)' },
+                ]}
+                accountTypeData={[
+                  { id: 'a1', label: 'Brokerage', value: 570000 },
+                  { id: 'a2', label: 'Retirement (IRA)', value: 200000 },
+                  { id: 'a3', label: 'Real Estate Entity', value: 650000 },
+                  { id: 'a4', label: 'Bank Checking/Savings', value: 80000 },
+                ]}
+              />
+            </DashboardSection>
+
+            <DashboardSection title="Income by Month Chart" subtitle="Yield cash flows">
+              <IncomeChart
+                data={[
+                  { month: 'May 24', dividends: 140, coupons: 300, interest: 45, rent: 1800, total: 2285 },
+                  { month: 'Jun 24', dividends: 260, coupons: 300, interest: 50, rent: 1800, total: 2410 },
+                  { month: 'Jul 24', dividends: 180, coupons: 300, interest: 45, rent: 1800, total: 2325 },
+                  { month: 'Aug 24', dividends: 310, coupons: 300, interest: 48, rent: 1800, total: 2458 },
+                  { month: 'Sep 24', dividends: 220, coupons: 300, interest: 52, rent: 1800, total: 2372 },
+                  { month: 'Oct 24', dividends: 290, coupons: 300, interest: 55, rent: 1800, total: 2445 },
+                ]}
+              />
+            </DashboardSection>
+          </div>
+
+          <DashboardSection title="Top Holdings Table" subtitle="Largest portfolio positions">
+            <TopHoldings
+              holdings={[
+                {
+                  symbol: 'AAPL',
+                  name: 'Apple Inc.',
+                  assetClass: 'equity',
+                  quantity: '500',
+                  marketValue: '90000',
+                  totalCost: '75000',
+                  unrealisedPnL: '15000',
+                  unrealisedPnLPct: '20.0',
+                  allocationPct: '6.0',
+                },
+                {
+                  symbol: 'BTC',
+                  name: 'Bitcoin',
+                  assetClass: 'crypto',
+                  quantity: '1.5',
+                  marketValue: '102000',
+                  totalCost: '60000',
+                  unrealisedPnL: '42000',
+                  unrealisedPnLPct: '70.0',
+                  allocationPct: '6.8',
+                },
+                {
+                  symbol: 'UST-10Y',
+                  name: 'US Treasury 10Y Bond',
+                  assetClass: 'fixed_income',
+                  quantity: '100',
+                  marketValue: '98500',
+                  totalCost: '100000',
+                  unrealisedPnL: '-1500',
+                  unrealisedPnLPct: '-1.5',
+                  allocationPct: '6.5',
+                },
+              ]}
+            />
+          </DashboardSection>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <Heading level="h2">Phase 4: Real Estate Components</Heading>
+        <div className="space-y-6">
+          <Tabs
+            items={[
+              { id: 'tab1', label: 'Overview' },
+              { id: 'tab2', label: 'Financing', badge: 1 },
+              { id: 'tab3', label: 'Schedule' },
+            ]}
+            activeTab="tab1"
+            onChange={() => {}}
+          />
+
+          <PropertyForm
+            accounts={[{ id: 'acc-1', name: 'Primary Account' }]}
+            onSubmit={() => {}}
+          />
+
+          <MortgagePanel
+            propertyId="prop-demo"
+            propertyValue="650000"
+            ownershipPct={1.0}
+            mortgage={{
+              id: 'm1',
+              name: 'Austin Property Mortgage',
+              principal: '480000',
+              rate: '0.0625',
+              termMonths: 360,
+              startDate: '2023-01-01',
+              outstandingBalance: '472000',
+            }}
+          />
+
+          <ValuationHistory
+            propertyId="prop-demo"
+            propertyName="Austin Property"
+            records={[
+              {
+                id: 'vm1',
+                date: '2024-06-01',
+                value: '650000',
+                method: 'manual',
+                note: 'Appraisal for loan refi',
+              },
+              {
+                id: 'vm2',
+                date: '2023-01-01',
+                value: '600000',
+                method: 'manual',
+                note: 'Acquisition price',
+              },
+            ]}
+            onAddMark={() => {}}
+          />
+
+          <AmortizationTable
+            principal="480000"
+            annualInterestRatePct="6.25"
+            termMonths={360}
+            startDate="2023-01-01"
+          />
+        </div>
+      </section>
+
+      {/* PHASE 5: TAX LOTS, CAPITAL GAINS & RISK */}
+      <section className="space-y-4">
+        <Heading level="h2">Phase 5: Capital Gains, Tax Lots & Risk</Heading>
+        <div className="space-y-6">
+          <TaxLotTable
+            lots={[
+              {
+                id: 'lot-demo-1',
+                transactionId: 'tx-1',
+                accountId: 'acc-1',
+                accountName: 'Brokerage Account',
+                instrumentId: 'inst-1',
+                symbol: 'AAPL',
+                name: 'Apple Inc.',
+                openDate: new Date('2024-01-15'),
+                originalQuantity: '10.00000000',
+                remainingQuantity: '10.00000000',
+                costBasisPerUnit: '150.00',
+                totalCostBasis: '1500.00',
+                currentPrice: '185.00',
+                currentValue: '1850.00',
+                unrealizedGainLoss: '350.00',
+                unrealizedGainLossPct: '23.33',
+                term: 'long_term',
+                holdingDays: 410,
+              },
+            ]}
+          />
+
+          <RealizedGainsReport
+            summary={{
+              taxYear: 2025,
+              shortTermProceeds: '2500.00',
+              shortTermCostBasis: '2000.00',
+              shortTermGain: '500.00',
+              longTermProceeds: '5000.00',
+              longTermCostBasis: '3200.00',
+              longTermGain: '1800.00',
+              totalProceeds: '7500.00',
+              totalCostBasis: '5200.00',
+              totalGain: '2300.00',
+              lots: [
+                {
+                  id: 'realized-demo-1',
+                  buyTransactionId: 'tx-1',
+                  sellTransactionId: 'tx-2',
+                  accountId: 'acc-1',
+                  instrumentId: 'inst-1',
+                  symbol: 'NVDA',
+                  name: 'NVIDIA Corp',
+                  openDate: new Date('2024-01-10'),
+                  closeDate: new Date('2025-03-01'),
+                  quantity: '5.00000000',
+                  costBasis: '1500.00',
+                  proceeds: '3000.00',
+                  gainLoss: '1500.00',
+                  term: 'long_term',
+                  holdingDays: 415,
+                },
+              ],
+            }}
+          />
+
+          <RiskPanel
+            riskData={{
+              totalPortfolioValue: '125000.00',
+              topHoldingPct: '28.00',
+              topHoldingSymbol: 'AAPL',
+              top5Pct: '72.00',
+              diversificationScore: 74,
+              diversificationRating: 'Moderate',
+              estimatedAnnualVolatility: '14.80%',
+              assetClassCount: 4,
+              positionCount: 12,
+              topHoldings: [
+                {
+                  instrumentId: 'inst-1',
+                  symbol: 'AAPL',
+                  name: 'Apple Inc.',
+                  assetClass: 'equity',
+                  value: '35000.00',
+                  percentage: '28.00',
+                },
+                {
+                  instrumentId: 'inst-2',
+                  symbol: 'MSFT',
+                  name: 'Microsoft Corp',
+                  assetClass: 'equity',
+                  value: '22000.00',
+                  percentage: '17.60',
+                },
+              ],
+              assetClassBreakdown: [
+                { assetClass: 'equity', value: '75000.00', percentage: '60.00' },
+                { assetClass: 'fixed_income', value: '30000.00', percentage: '24.00' },
+                { assetClass: 'crypto', value: '12000.00', percentage: '9.60' },
+                { assetClass: 'cash', value: '8000.00', percentage: '6.40' },
+              ],
+              deterministicInsights: [
+                {
+                  id: 'demo-insight-1',
+                  type: 'success',
+                  title: 'Multi-Asset Spread',
+                  description: 'Assets distributed across 4 distinct asset classes.',
+                },
+              ],
+            }}
+          />
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ================= ADMIN & DATA SOURCES ================= */}
+      <section className="space-y-8">
+        <div>
+          <Heading level="h2">Data Sources &amp; Admin Security Organisms</Heading>
+          <Text variant="body" tone="muted" className="mt-1">
+            AES-256-GCM encrypted provider management and immutable audit logs.
+          </Text>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ProviderStatusCard Molecule</Heading>
+          <div className="max-w-md">
+            <ProviderStatusCard
+              provider="finnhub"
+              name="Finnhub Stock API"
+              kind="equity"
+              requiresKey={true}
+              isConfigured={true}
+              keyMasked="••••a3f9"
+              enabled={true}
+              priority={1}
+              lastSuccessAt="2026-11-01T12:00:00Z"
+              lastError={null}
+              onEditKey={() => {}}
+              onRemoveKey={() => {}}
+              onToggleEnabled={() => {}}
+              onTestConnection={() => {}}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ProviderList Organism</Heading>
+          <ProviderList
+            providers={[
+              {
+                provider: 'finnhub',
+                name: 'Finnhub Stock API',
+                kind: 'equity',
+                requiresKey: true,
+                isConfigured: true,
+                keyMasked: '••••a3f9',
+                enabled: true,
+                priority: 1,
+                lastSuccessAt: '2026-11-01T12:00:00Z',
+                lastError: null,
+              },
+              {
+                provider: 'twelvedata',
+                name: 'Twelve Data API',
+                kind: 'equity',
+                requiresKey: true,
+                isConfigured: false,
+                enabled: false,
+                priority: 2,
+                lastSuccessAt: null,
+                lastError: 'API key not configured',
+              },
+            ]}
+            onEditKey={() => {}}
+            onRemoveKey={() => {}}
+            onToggleEnabled={() => {}}
+            onTestConnection={() => {}}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ApiKeyForm Organism</Heading>
+          <div className="max-w-md">
+            <ApiKeyForm
+              provider="finnhub"
+              providerName="Finnhub Stock API"
+              onSave={async () => ({ ok: true, message: 'Saved successfully' })}
+              onCancel={() => {}}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">AuditLogTable Organism</Heading>
+          <AuditLogTable
+            entries={[
+              {
+                id: 'log-1',
+                actorUserId: 'admin-1',
+                actorEmail: 'admin@wealthtrack.dev',
+                action: 'save_key',
+                target: 'provider:finnhub',
+                metadata: '{"last4":"a3f9"}',
+                createdAt: new Date(),
+              },
+              {
+                id: 'log-2',
+                actorUserId: 'admin-1',
+                actorEmail: 'admin@wealthtrack.dev',
+                action: 'test_connection',
+                target: 'provider:finnhub',
+                metadata: '{"success":true}',
+                createdAt: new Date(),
+              },
+            ]}
           />
         </div>
       </section>

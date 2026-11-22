@@ -52,5 +52,20 @@ export class FinnhubPriceProvider implements PriceProvider {
       freshnessLabel: 'Live',
     };
   }
+
+  async testConnection(): Promise<{ ok: boolean; message: string }> {
+    try {
+      const quote = await this.fetchQuote('AAPL');
+      return {
+        ok: true,
+        message: `Finnhub connection verified. AAPL live quote: $${quote.price}.`,
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Connection failed';
+      // Sanitize key out of message
+      const cleanMsg = msg.replace(/token=[^& ]+/gi, 'token=***');
+      return { ok: false, message: cleanMsg };
+    }
+  }
 }
 

@@ -19,14 +19,35 @@ model User {
   email         String    @unique
   name          String?
   passwordHash  String
+  role          UserRole  @default(user)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   accounts      Account[]
   netWorthSnapshots NetWorthSnapshot[]
+  auditLogs     AuditLog[]
+  providerConfigs ProviderConfig[]
+  passwordResetTokens PasswordResetToken[]
 
   // Auth.js session tables (added in Phase 1)
   // sessions   Session[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+enum UserRole {
+  user
+  admin
 }
 
 // ---------------------------------------------------------------------------
@@ -347,4 +368,67 @@ model NetWorthSnapshot {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId, snapshotAt])
+}
+
+// ---------------------------------------------------------------------------
+// PROVIDER CONFIGURATIONS (encrypted secrets for market & yield sources)
+// ---------------------------------------------------------------------------
+
+model ProviderConfig {
+  id              String       @id @default(cuid())
+  provider        String       @unique // e.g. "finnhub", "twelvedata", "coingecko", "treasury"
+  kind            ProviderKind // equity, crypto, yield
+  encryptedKey    String?      // AES-256-GCM encrypted blob (IV + authTag + ciphertext)
+  keyLast4        String?      // Masked last 4 characters e.g. "a3f9"
+  enabled         Boolean      @default(true)
+  priority        Int          @default(1)
+  lastSuccessAt   DateTime?
+  lastError       String?      // Sanitized error message, never containing secrets
+  updatedAt       DateTime     @updatedAt
+  updatedByUserId String?
+
+  updatedByUser   User?        @relation(fields: [updatedByUserId], references: [id])
+
+  @@index([kind, enabled])
+}
+
+enum ProviderKind {
+  equity
+  crypto
+  yield
+}
+
+// ---------------------------------------------------------------------------
+// YIELD CURVE POINTS (US Treasury benchmark curve reference)
+// ---------------------------------------------------------------------------
+
+model YieldCurvePoint {
+  id        String   @id @default(cuid())
+  date      DateTime
+  tenor     String   // "3m", "2y", "5y", "10y", "30y"
+  yieldPct  String   // Decimal string, e.g. "0.0425" = 4.25%
+  source    String   @default("treasury")
+  asOf      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([date, tenor, source])
+  @@index([date, tenor])
+}
+
+// ---------------------------------------------------------------------------
+// AUDIT LOG (for administrative actions, zero secrets recorded)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String
+  action      String   // e.g. "save_key", "remove_key", "enable", "disable", "set_priority", "test_connection"
+  target      String   // e.g. "provider:finnhub"
+  createdAt   DateTime @default(now())
+  metadata    String?  // Sanitized JSON string without secrets
+
+  actorUser   User     @relation(fields: [actorUserId], references: [id])
+
+  @@index([actorUserId, createdAt])
+  @@index([target, createdAt])
 }

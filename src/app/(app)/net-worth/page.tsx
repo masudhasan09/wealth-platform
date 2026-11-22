@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getNetWorthAction } from '@/app/actions/net-worth';
 import { getSnapshotHistoryAction } from '@/app/actions/net-worth';
-import { DashboardLayout } from '@/components/templates';
 import { NetWorthClient } from './NetWorthClient';
 
 export const dynamic = 'force-dynamic';
@@ -19,23 +18,15 @@ export default async function NetWorthPage() {
   const hasError = 'error' in netWorthData;
 
   return (
-    <DashboardLayout
-      currentPath="/net-worth"
-      user={{
-        name: session.user.name ?? 'User',
-        email: session.user.email ?? '',
-      }}
-    >
-      <NetWorthClient
-        netWorth={hasError ? null : netWorthData.result}
-        positions={hasError ? [] : netWorthData.positions}
-        snapshots={snapshots.map((s) => ({
-          ...s,
-          snapshotAt: s.snapshotAt.toISOString(),
-        }))}
-        error={hasError ? netWorthData.error : null}
-      />
-    </DashboardLayout>
+    <NetWorthClient
+      netWorth={hasError ? null : netWorthData.result}
+      positions={hasError ? [] : netWorthData.positions}
+      snapshots={snapshots.map((s) => ({
+        ...s,
+        snapshotAt: s.snapshotAt.toISOString(),
+      }))}
+      error={hasError ? netWorthData.error : null}
+    />
   );
 }
 

@@ -31,67 +31,55 @@ export function ConfirmDialog({
   onCancel,
   className,
 }: ConfirmDialogProps) {
-  const dialogRef = React.useRef<HTMLDialogElement>(null);
-
-  React.useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (open && typeof dialog.showModal === 'function' && !dialog.open) {
-      try {
-        dialog.showModal();
-      } catch {
-        // Fallback for jsdom
-      }
-    } else if (!open && typeof dialog.close === 'function' && dialog.open) {
-      try {
-        dialog.close();
-      } catch {
-        // Fallback for jsdom
-      }
-    }
-  }, [open]);
-
   if (!open) return null;
 
   return (
-    <dialog
-      ref={dialogRef}
-      open={open}
-      onClose={onCancel}
-      aria-labelledby="dialog-title"
-      aria-describedby="dialog-desc"
-      className={cn(
-        'm-auto p-6 rounded-lg bg-surface text-text border border-border shadow-xl backdrop:bg-overlay max-w-md w-full',
-        className
-      )}
+    <div
+      className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay backdrop-blur-xs"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !loading) {
+          onCancel();
+        }
+      }}
+      role="presentation"
     >
-      <Heading id="dialog-title" level="h3" size="h4" className="mb-2">
-        {title}
-      </Heading>
+      <div
+        role="alertdialog"
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-desc"
+        aria-modal="true"
+        className={cn(
+          'bg-surface text-text border border-border rounded-xl p-6 max-w-md w-full shadow-2xl animate-fade-in',
+          className
+        )}
+      >
+        <Heading id="dialog-title" level="h3" size="h4" className="mb-2">
+          {title}
+        </Heading>
 
-      <Text id="dialog-desc" variant="body" tone="muted" className="mb-6">
-        {description}
-      </Text>
+        <Text id="dialog-desc" variant="body" tone="muted" className="mb-6">
+          {description}
+        </Text>
 
-      <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          disabled={loading}
-        >
-          {cancelLabel}
-        </Button>
-        <Button
-          type="button"
-          variant={variant === 'danger' ? 'danger' : 'primary'}
-          onClick={onConfirm}
-          loading={loading}
-        >
-          {confirmLabel}
-        </Button>
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            variant={variant === 'danger' ? 'danger' : 'primary'}
+            onClick={onConfirm}
+            loading={loading}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
       </div>
-    </dialog>
+    </div>
   );
 }

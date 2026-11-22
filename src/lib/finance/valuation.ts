@@ -42,8 +42,12 @@ export interface ValuedPosition {
 }
 
 export interface NetWorthResult {
-  /** Total net worth = sum of all market values + cash (decimal string). */
+  /** Total net worth = sum of all market values + cash - liabilities (decimal string). */
   total: string;
+  /** Gross assets before deducting liabilities. */
+  grossAssets?: string;
+  /** Total outstanding liabilities deducted from net worth. */
+  totalLiabilities?: string;
   /** Breakdown by account (accountId → total market value string). */
   byAccount: Record<string, string>;
   /** Breakdown by asset class (assetClass → total market value string). */
@@ -139,16 +143,17 @@ export function computeNetWorth(
   positions: ValuedPosition[],
   cashBalances: Map<string, string>,
   unvaluedSymbols: string[] = [],
+  totalLiabilities: string = '0',
 ): NetWorthResult {
-  let total = new Decimal(0);
+  let grossTotal = new Decimal(0);
   const byAccount: Record<string, Decimal> = {};
   const byAssetClass: Record<string, Decimal> = {};
   let hasStaleData = false;
 
-  // Sum equity/crypto/fixed-income positions
+  // Sum equity/crypto/fixed-income/real-estate positions
   for (const p of positions) {
     const mv = new Decimal(p.marketValue);
-    total = total.add(mv);
+    grossTotal = grossTotal.add(mv);
 
     byAccount[p.accountId] = (byAccount[p.accountId] ?? new Decimal(0)).add(mv);
     byAssetClass[p.assetClass] = (byAssetClass[p.assetClass] ?? new Decimal(0)).add(mv);
@@ -159,13 +164,18 @@ export function computeNetWorth(
   // Add cash balances
   for (const [accountId, cashStr] of cashBalances) {
     const cash = new Decimal(cashStr);
-    total = total.add(cash);
+    grossTotal = grossTotal.add(cash);
     byAccount[accountId] = (byAccount[accountId] ?? new Decimal(0)).add(cash);
     byAssetClass['cash'] = (byAssetClass['cash'] ?? new Decimal(0)).add(cash);
   }
 
+  const liabilitiesDec = new Decimal(totalLiabilities || 0);
+  const netTotal = grossTotal.minus(liabilitiesDec);
+
   return {
-    total: total.toFixed(2),
+    total: netTotal.toFixed(2),
+    grossAssets: grossTotal.toFixed(2),
+    totalLiabilities: liabilitiesDec.toFixed(2),
     byAccount: Object.fromEntries(
       Object.entries(byAccount).map(([k, v]) => [k, v.toFixed(2)]),
     ),

@@ -125,5 +125,18 @@ export class CoinGeckoPriceProvider implements PriceProvider {
 
     return map;
   }
+
+  async testConnection(): Promise<{ ok: boolean; message: string }> {
+    try {
+      const quote = await this.fetchQuote('BTC');
+      return {
+        ok: true,
+        message: `CoinGecko public API verified. BTC live quote: $${quote.price}.`,
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Connection failed';
+      return { ok: false, message: msg };
+    }
+  }
 }
 

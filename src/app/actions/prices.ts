@@ -3,7 +3,8 @@
 import { auth } from '@/auth';
 import { upsertPrice } from '@/lib/db/prices';
 import { findOrCreateInstrument } from '@/lib/db/instruments';
-import { getPrices } from '@/lib/services/price.service';
+import { getPrice, getPrices } from '@/lib/services/price.service';
+import { prisma } from '@/lib/db/client';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
@@ -90,4 +91,117 @@ export async function getTickerPricesAction(tickers: string[]): Promise<TickerPr
       freshnessLabel: q?.freshnessLabel ?? null,
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Live Market Data Fetch & Sync
+// ---------------------------------------------------------------------------
+
+export interface LiveQuoteResult {
+  success: boolean;
+  ticker?: string;
+  price?: string;
+  source?: string;
+  error?: string;
+}
+
+export async function fetchLivePriceAction(ticker: string): Promise<LiveQuoteResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Not authenticated' };
+
+  const clean = ticker.trim().toUpperCase();
+  if (!clean) return { success: false, error: 'Ticker is required' };
+
+  try {
+    const quote = await getPrice(clean, { forceRefresh: true });
+    return {
+      success: true,
+      ticker: clean,
+      price: quote.price,
+      source: quote.source,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to fetch live market price';
+    return { success: false, error: msg };
+  }
+}
+
+export async function syncLivePriceAction(ticker: string): Promise<LiveQuoteResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Not authenticated' };
+
+  const clean = ticker.trim().toUpperCase();
+  if (!clean) return { success: false, error: 'Ticker is required' };
+
+  try {
+    const quote = await getPrice(clean, { forceRefresh: true });
+    const instrument = await findOrCreateInstrument({ symbol: clean });
+    await upsertPrice({
+      instrumentId: instrument.id,
+      value: quote.price,
+      source: quote.source,
+      asOf: quote.asOf,
+      method: quote.method,
+    });
+
+    revalidatePath('/prices');
+    revalidatePath('/holdings');
+    revalidatePath('/net-worth');
+    revalidatePath('/dashboard');
+
+    return {
+      success: true,
+      ticker: clean,
+      price: quote.price,
+      source: quote.source,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to sync live price';
+    return { success: false, error: msg };
+  }
+}
+
+export async function syncAllLivePricesAction(): Promise<{
+  success: boolean;
+  syncedCount: number;
+  failedTickers: string[];
+}> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, syncedCount: 0, failedTickers: [] };
+
+  const instruments = await prisma.instrument.findMany({
+    where: {
+      assetClass: { in: ['equity', 'crypto'] },
+      symbol: { not: null },
+    },
+    select: { symbol: true },
+  });
+
+  let syncedCount = 0;
+  const failedTickers: string[] = [];
+
+  for (const inst of instruments) {
+    if (!inst.symbol) continue;
+    try {
+      const quote = await getPrice(inst.symbol, { forceRefresh: true });
+      const instrument = await findOrCreateInstrument({ symbol: inst.symbol });
+      await upsertPrice({
+        instrumentId: instrument.id,
+        value: quote.price,
+        source: quote.source,
+        asOf: quote.asOf,
+        method: quote.method,
+      });
+      syncedCount++;
+    } catch {
+      failedTickers.push(inst.symbol);
+    }
+  }
+
+  revalidatePath('/prices');
+  revalidatePath('/holdings');
+  revalidatePath('/net-worth');
+  revalidatePath('/dashboard');
+
+  return { success: true, syncedCount, failedTickers };
 }
