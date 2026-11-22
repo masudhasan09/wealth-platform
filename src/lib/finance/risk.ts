@@ -111,16 +111,41 @@ export function computePortfolioRisk(positions: PositionRiskInput[]): RiskAnalys
     };
   }
 
-  // Sort descending by value
-  validPositions.sort((a, b) => b.decValue.comparedTo(a.decValue));
+  // Consolidate positions by instrumentId so asset concentration measures total exposure across accounts
+  const instrumentMap = new Map<string, {
+    instrumentId: string;
+    symbol: string;
+    name: string;
+    assetClass: string;
+    decValue: Decimal;
+  }>();
+
+  for (const p of validPositions) {
+    const key = p.instrumentId || p.symbol || 'unknown';
+    const existing = instrumentMap.get(key);
+    if (existing) {
+      existing.decValue = existing.decValue.plus(p.decValue);
+    } else {
+      instrumentMap.set(key, {
+        instrumentId: p.instrumentId,
+        symbol: p.symbol || p.name || 'Unknown',
+        name: p.name || p.symbol || 'Unknown',
+        assetClass: p.assetClass,
+        decValue: p.decValue,
+      });
+    }
+  }
+
+  const consolidatedPositions = Array.from(instrumentMap.values());
+  consolidatedPositions.sort((a, b) => b.decValue.comparedTo(a.decValue));
 
   // Concentration items
-  const concentrationItems: ConcentrationItem[] = validPositions.map((p) => {
+  const concentrationItems: ConcentrationItem[] = consolidatedPositions.map((p) => {
     const pct = p.decValue.dividedBy(totalDec).times(100);
     return {
       instrumentId: p.instrumentId,
-      symbol: p.symbol || p.name || 'Unknown',
-      name: p.name || p.symbol || 'Unknown',
+      symbol: p.symbol,
+      name: p.name,
       assetClass: p.assetClass,
       value: p.decValue.toFixed(2),
       percentage: pct.toFixed(2),

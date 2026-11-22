@@ -34,7 +34,13 @@ export default function LoginPage() {
         serverError={error}
       />
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 flex items-center justify-between">
+        <Link
+          href="/forgot-password"
+          className="text-xs text-primary hover:underline font-medium"
+        >
+          Forgot password?
+        </Link>
         <Text variant="caption" tone="muted">
           Don&apos;t have an account?{' '}
           <Link

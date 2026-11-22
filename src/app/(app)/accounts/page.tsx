@@ -30,6 +30,7 @@ export default async function AccountsPage() {
     fee: tx.fee,
     date: tx.date,
     voidedAt: tx.voidedAt,
+    assetClass: tx.instrument.assetClass,
   }));
 
   const cashBalances = computeCashBalances(financeTx);
@@ -45,4 +46,3 @@ export default async function AccountsPage() {
 
   return <AccountsClient initialAccounts={accountViewModels} />;
 }
-

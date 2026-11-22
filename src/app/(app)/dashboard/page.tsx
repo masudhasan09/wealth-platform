@@ -2,9 +2,9 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
-import { getPropertiesByUserId } from '@/lib/db/real-estate';
 import { computeCashBalances } from '@/lib/finance/holdings';
-import { partitionPositionsByLiquidity } from '@/lib/finance/performance';
+import { partitionPositionsByLiquidity, computeMWR } from '@/lib/finance/performance';
+import Decimal from 'decimal.js';
 import { getNetWorthAction, getSnapshotHistoryAction } from '@/app/actions/net-worth';
 import { DashboardClient } from './DashboardClient';
 import type { SnapshotPoint } from './DashboardClient';
@@ -27,12 +27,11 @@ export default async function DashboardPage() {
   const userId = session.user.id;
 
   // Load all required portfolio data concurrently
-  const [accounts, netWorthData, rawSnapshots, txRows, properties] = await Promise.all([
+  const [accounts, netWorthData, rawSnapshots, txRows] = await Promise.all([
     getAccountsByUserId(userId),
     getNetWorthAction(),
     getSnapshotHistoryAction(90),
     getTransactionsByUserId(userId),
-    getPropertiesByUserId(userId),
   ]);
 
   const hasData = !('error' in netWorthData);
@@ -58,6 +57,7 @@ export default async function DashboardPage() {
     date: tx.date,
     voidedAt: tx.voidedAt,
     note: tx.note,
+    assetClass: tx.instrument.assetClass,
   }));
   const cashBalances = computeCashBalances(enrichedTx);
 
@@ -83,14 +83,16 @@ export default async function DashboardPage() {
 
     const typeKey = acc.type || 'brokerage';
     if (!accountTypeMap[typeKey]) {
+      // Keys mirror the Prisma AccountType enum exactly.
       const typeLabels: Record<string, string> = {
         brokerage: 'Taxable Brokerage',
-        checking: 'Bank Checking & Savings',
-        savings: 'Bank Savings',
-        crypto_wallet: 'Crypto Custody',
-        retirement: 'Retirement (IRA/401k)',
-        custody: 'Custodial & Trust',
+        retirement_401k: 'Retirement (401k)',
+        ira: 'Traditional IRA',
+        roth_ira: 'Roth IRA',
         hsa: 'Health Savings (HSA)',
+        bank: 'Bank Checking & Savings',
+        crypto_wallet: 'Crypto Custody',
+        property: 'Real Estate Holding',
       };
       accountTypeMap[typeKey] = {
         label: typeLabels[typeKey] || acc.type,
@@ -176,24 +178,17 @@ export default async function DashboardPage() {
     total: Math.round(item.dividends + item.interest + item.coupons + item.rent),
   }));
 
-  // If no transactions yet, show baseline demonstration schedule
-  const hasRealIncome = incomeData.some((d) => d.total > 0);
-  const finalIncomeData = hasRealIncome
-    ? incomeData
-    : incomeData.map((d, idx) => ({
-        ...d,
-        dividends: (idx + 1) * 80,
-        coupons: (idx + 1) * 120,
-        interest: 35,
-        rent: properties.length > 0 ? 1200 : 0,
-        total: (idx + 1) * 80 + (idx + 1) * 120 + 35 + (properties.length > 0 ? 1200 : 0),
-      }));
+  // Only real recorded income is charted. An empty ledger renders a zero chart
+  // rather than an invented payment schedule.
+  const finalIncomeData = incomeData;
 
   // 5. Performance Metrics (TWR and MWR)
-  let twrVal = 8.5;
-  let mwrVal = 9.2;
-  let liquidReturn = 11.4;
-  let appraisedReturn = 4.8;
+  // Every figure is derived from the ledger. With no positions the whole panel
+  // reports zero rather than a placeholder return.
+  let twrVal = 0;
+  let mwrVal = 0;
+  let liquidReturn = 0;
+  let appraisedReturn = 0;
 
   if (hasData && netWorthData.positions.length > 0) {
     const partitioned = partitionPositionsByLiquidity(
@@ -219,9 +214,28 @@ export default async function DashboardPage() {
     const totalCost = netWorthData.positions.reduce((sum, p) => sum + parseFloat(p.totalCost || '0'), 0);
     const totalVal = netWorthData.positions.reduce((sum, p) => sum + parseFloat(p.marketValue || '0'), 0);
     if (totalCost > 0) {
-      const overallRet = ((totalVal - totalCost) / totalCost) * 100;
-      twrVal = Number(overallRet.toFixed(2));
-      mwrVal = Number((overallRet * 1.05).toFixed(2));
+      twrVal = Number((((totalVal - totalCost) / totalCost) * 100).toFixed(2));
+    }
+
+    // Money-weighted return (XIRR) from real external cash flows:
+    // deposits are money the investor put in, withdrawals money taken out,
+    // and current net worth is the terminal value.
+    const externalFlows = txRows
+      .filter((tx) => !tx.voidedAt && (tx.type === 'deposit' || tx.type === 'withdrawal'))
+      .map((tx) => ({
+        date: tx.date,
+        amount: new Decimal(tx.amount || '0')
+          .times(tx.type === 'deposit' ? -1 : 1)
+          .toFixed(2),
+      }));
+
+    if (externalFlows.length > 0) {
+      const mwr = computeMWR({
+        cashFlows: externalFlows,
+        terminalValue: netWorthData.result.total,
+        terminalDate: new Date(),
+      });
+      if (mwr.converged) mwrVal = Number(mwr.mwrPct);
     }
   }
 

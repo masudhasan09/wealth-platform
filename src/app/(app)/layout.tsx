@@ -15,6 +15,11 @@ export default async function AppLayout({
     redirect('/login');
   }
 
+  const role = (session.user as unknown as { role?: string })?.role;
+  if (role === 'admin') {
+    redirect('/admin/data-sources');
+  }
+
   return (
     <DashboardLayout
       user={{
@@ -22,6 +27,7 @@ export default async function AppLayout({
         email: session.user.email || '',
       }}
       logoutAction={logoutAction}
+      isAdmin={false}
     >
       {children}
     </DashboardLayout>

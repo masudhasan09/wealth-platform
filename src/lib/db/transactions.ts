@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js';
 import { prisma } from './client';
 import { findOrCreateInstrument } from './instruments';
 import { computeHoldings, InsufficientHoldingsError } from '@/lib/finance';
@@ -72,12 +73,13 @@ export async function createTransaction(userId: string, data: TransactionInput) 
 
     const currentHoldings = computeHoldings(activeTx, { strict: false });
     const holding = currentHoldings.find((h) => h.instrumentId === instrument.id);
-    const availableQty = holding ? parseFloat(holding.quantity) : 0;
-    const requestedQty = parseFloat(data.quantity || '0');
+    const availableQty = new Decimal(holding?.quantity ?? '0');
+    const requestedQty = new Decimal(data.quantity || '0');
 
-    if (requestedQty > availableQty) {
+    // Compare with Decimal semantics: 0.1 + 0.2 must not exceed 0.3.
+    if (requestedQty.greaterThan(availableQty)) {
       throw new Error(
-        `Cannot sell ${data.quantity} units of ${instrument.symbol || 'this asset'}. Account "${account.name}" currently holds ${availableQty} units.`
+        `Cannot sell ${requestedQty.toString()} units of ${instrument.symbol || 'this asset'}. Account "${account.name}" currently holds ${availableQty.toString()} units.`
       );
     }
   }
@@ -85,11 +87,7 @@ export async function createTransaction(userId: string, data: TransactionInput) 
   // 4. Calculate amount if not provided
   let amount = data.amount || '0';
   if ((!amount || amount === '0') && data.quantity && data.price) {
-    const qty = parseFloat(data.quantity);
-    const prc = parseFloat(data.price);
-    if (!isNaN(qty) && !isNaN(prc)) {
-      amount = (qty * prc).toFixed(2);
-    }
+    amount = new Decimal(data.quantity).times(new Decimal(data.price)).toFixed(2);
   }
 
   // 5. Create immutable transaction
@@ -175,4 +173,3 @@ export async function voidTransaction(
     },
   });
 }
-

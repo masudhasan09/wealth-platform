@@ -175,7 +175,7 @@ export function RiskPanel({ riskData, className }: RiskPanelProps) {
             </thead>
             <tbody className="divide-y divide-border">
               {riskData.topHoldings.map((h, idx) => (
-                <tr key={h.instrumentId} className="hover:bg-surface-hover transition-colors">
+                <tr key={`${h.instrumentId}-${idx}`} className="hover:bg-surface-hover transition-colors">
                   <td className="py-2.5 px-3 font-mono text-text-muted">#{idx + 1}</td>
                   <td className="py-2.5 px-3 font-semibold text-text">
                     {h.symbol}

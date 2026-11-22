@@ -10,6 +10,7 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = (user as unknown as { role?: string }).role || 'user';
       }
       return token;
     },
@@ -18,6 +19,7 @@ export const authConfig: NextAuthConfig = {
         session.user.id = (token.id as string) || (token.sub as string);
         if (token.name) session.user.name = token.name as string;
         if (token.email) session.user.email = token.email as string;
+        (session.user as unknown as { role?: string }).role = (token.role as string) || 'user';
       }
       return session;
     },

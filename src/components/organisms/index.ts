@@ -11,6 +11,7 @@ export * from './gains';
 export * from './import';
 export * from './risk';
 export * from './reports';
+export * from './admin';
 export * from './layout/Sidebar';
 export * from './layout/Header';
 export * from './layout/Navbar';

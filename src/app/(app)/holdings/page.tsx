@@ -32,6 +32,7 @@ export default async function HoldingsPage() {
     fee: tx.fee,
     date: tx.date,
     voidedAt: tx.voidedAt,
+    assetClass: tx.instrument.assetClass,
   }));
 
   let computedHoldingsList: ReturnType<typeof computeHoldings> = [];

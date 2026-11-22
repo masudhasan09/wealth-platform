@@ -43,6 +43,7 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
       date: tx.date,
       voidedAt: tx.voidedAt,
       voidedReason: tx.voidedReason,
+      assetClass: tx.instrument?.assetClass,
     }));
 
     // Compute holdings (non-strict to avoid crash on display)
@@ -69,11 +70,18 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
     // Value portfolio
     const { positions, unvaluedSymbols } = valuePortfolio(holdings, priceMap);
 
+    // Query this user's liabilities once — used both to scope property
+    // instruments and to deduct debt from net worth below.
+    const userLiabilities = await prisma.liability.findMany({
+      where: { account: { userId } },
+    });
+
     // -----------------------------------------------------------------------
     // Inject real estate valuations from ValuationMark as synthetic positions.
     // Real estate is not tracked via buy/sell transactions — it uses appraisals.
-    // We pick the latest ValuationMark per instrument owned by this user's
-    // property accounts and create a synthetic ValuedPosition for each.
+    // Only instruments reachable from THIS user (through their own transactions
+    // or a liability on one of their accounts) are considered, so one investor's
+    // portfolio can never pick up another investor's property.
     // -----------------------------------------------------------------------
     const propertyAccounts = await prisma.account.findMany({
       where: { userId, type: 'property' },
@@ -81,14 +89,33 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
     });
     const propertyAccountIds = propertyAccounts.map((a) => a.id);
 
-    if (propertyAccountIds.length > 0) {
-      // Get all real_estate instruments linked to this user's property accounts
+    const propertyInstrumentIds = new Set<string>();
+    const txAccountMap = new Map<string, string>();
+
+    // Instruments this user actually holds (txRows is already user-scoped)
+    for (const tx of txRows) {
+      if (tx.instrument?.assetClass === 'real_estate') {
+        propertyInstrumentIds.add(tx.instrumentId);
+        if (!txAccountMap.has(tx.instrumentId)) {
+          txAccountMap.set(tx.instrumentId, tx.accountId);
+        }
+      }
+    }
+
+    // Instruments reachable only through a linked liability
+    for (const liability of userLiabilities) {
+      if (!liability.linkedInstrumentId) continue;
+      propertyInstrumentIds.add(liability.linkedInstrumentId);
+      if (!txAccountMap.has(liability.linkedInstrumentId)) {
+        txAccountMap.set(liability.linkedInstrumentId, liability.accountId);
+      }
+    }
+
+    if (propertyInstrumentIds.size > 0) {
       const propInstruments = await prisma.instrument.findMany({
         where: {
+          id: { in: Array.from(propertyInstrumentIds) },
           assetClass: 'real_estate',
-          OR: [
-            { propertyDetails: { isNot: null } },
-          ],
         },
         include: {
           propertyDetails: true,
@@ -98,25 +125,6 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
           },
         },
       });
-
-      // Find which account each instrument belongs to
-      const txAccountMap = new Map<string, string>();
-      for (const tx of txRows) {
-        if (tx.instrumentId && !txAccountMap.has(tx.instrumentId)) {
-          txAccountMap.set(tx.instrumentId, tx.accountId);
-        }
-      }
-
-      // Also query property accounts for instruments via liabilities or direct link
-      const propLiabilities = await prisma.liability.findMany({
-        where: { accountId: { in: propertyAccountIds } },
-        select: { accountId: true, linkedInstrumentId: true },
-      });
-      for (const l of propLiabilities) {
-        if (l.linkedInstrumentId) {
-          txAccountMap.set(l.linkedInstrumentId, l.accountId);
-        }
-      }
 
       const now = new Date();
       for (const inst of propInstruments) {
@@ -136,7 +144,8 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
         // Resolve which account this property belongs to
         const accountId =
           txAccountMap.get(inst.id) ??
-          propertyAccountIds[0]; // fallback to first property account
+          propertyAccountIds[0] ??
+          txRows[0]?.accountId;
 
         const syntheticPosition: ValuedPosition = {
           accountId,
@@ -171,11 +180,7 @@ export async function getNetWorthAction(): Promise<NetWorthData | { error: strin
     const rawCash = computeCashBalances(enriched);
     const cashMap = new Map(Object.entries(rawCash));
 
-    // Query liabilities for this user
-    const liabilities = await prisma.liability.findMany({
-      where: { account: { userId } },
-    });
-    const totalLiabilities = liabilities
+    const totalLiabilities = userLiabilities
       .reduce((sum, l) => sum.plus(new Decimal(l.principal)), new Decimal(0))
       .toFixed(2);
 

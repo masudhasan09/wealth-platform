@@ -43,6 +43,7 @@ import {
   Stepper,
   Tabs,
   LogoutButton,
+  ProviderStatusCard,
 } from '@/components/molecules';
 import {
   DataTable,
@@ -64,6 +65,9 @@ import {
   TaxLotTable,
   RealizedGainsReport,
   RiskPanel,
+  ProviderList,
+  ApiKeyForm,
+  AuditLogTable,
 } from '@/components/organisms';
 
 export default function ComponentGalleryPage() {
@@ -876,6 +880,113 @@ export default function ComponentGalleryPage() {
                 },
               ],
             }}
+          />
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* ================= ADMIN & DATA SOURCES ================= */}
+      <section className="space-y-8">
+        <div>
+          <Heading level="h2">Data Sources &amp; Admin Security Organisms</Heading>
+          <Text variant="body" tone="muted" className="mt-1">
+            AES-256-GCM encrypted provider management and immutable audit logs.
+          </Text>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ProviderStatusCard Molecule</Heading>
+          <div className="max-w-md">
+            <ProviderStatusCard
+              provider="finnhub"
+              name="Finnhub Stock API"
+              kind="equity"
+              requiresKey={true}
+              isConfigured={true}
+              keyMasked="••••a3f9"
+              enabled={true}
+              priority={1}
+              lastSuccessAt="2026-11-01T12:00:00Z"
+              lastError={null}
+              onEditKey={() => {}}
+              onRemoveKey={() => {}}
+              onToggleEnabled={() => {}}
+              onTestConnection={() => {}}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ProviderList Organism</Heading>
+          <ProviderList
+            providers={[
+              {
+                provider: 'finnhub',
+                name: 'Finnhub Stock API',
+                kind: 'equity',
+                requiresKey: true,
+                isConfigured: true,
+                keyMasked: '••••a3f9',
+                enabled: true,
+                priority: 1,
+                lastSuccessAt: '2026-11-01T12:00:00Z',
+                lastError: null,
+              },
+              {
+                provider: 'twelvedata',
+                name: 'Twelve Data API',
+                kind: 'equity',
+                requiresKey: true,
+                isConfigured: false,
+                enabled: false,
+                priority: 2,
+                lastSuccessAt: null,
+                lastError: 'API key not configured',
+              },
+            ]}
+            onEditKey={() => {}}
+            onRemoveKey={() => {}}
+            onToggleEnabled={() => {}}
+            onTestConnection={() => {}}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">ApiKeyForm Organism</Heading>
+          <div className="max-w-md">
+            <ApiKeyForm
+              provider="finnhub"
+              providerName="Finnhub Stock API"
+              onSave={async () => ({ ok: true, message: 'Saved successfully' })}
+              onCancel={() => {}}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Heading level="h3">AuditLogTable Organism</Heading>
+          <AuditLogTable
+            entries={[
+              {
+                id: 'log-1',
+                actorUserId: 'admin-1',
+                actorEmail: 'admin@wealthtrack.dev',
+                action: 'save_key',
+                target: 'provider:finnhub',
+                metadata: '{"last4":"a3f9"}',
+                createdAt: new Date(),
+              },
+              {
+                id: 'log-2',
+                actorUserId: 'admin-1',
+                actorEmail: 'admin@wealthtrack.dev',
+                action: 'test_connection',
+                target: 'provider:finnhub',
+                metadata: '{"success":true}',
+                createdAt: new Date(),
+              },
+            ]}
           />
         </div>
       </section>

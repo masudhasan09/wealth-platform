@@ -14,7 +14,9 @@
 import { getLatestPrice, getLatestPriceById, upsertPrice } from '@/lib/db/prices';
 import { findOrCreateInstrument } from '@/lib/db/instruments';
 import { FinnhubPriceProvider } from '@/lib/providers/finnhub.provider';
+import { TwelveDataPriceProvider } from '@/lib/providers/twelvedata.provider';
 import { CoinGeckoPriceProvider } from '@/lib/providers/coingecko.provider';
+import { getDecryptedProviderKey, recordProviderResult } from './provider-config.service';
 import { isStale, getFreshnessLabel, getFreshnessVariant } from '@/lib/utils/freshness';
 import type { PriceQuote, PriceSource, PriceMap } from '@/lib/providers/types';
 import { prisma } from '@/lib/db/client';
@@ -52,17 +54,34 @@ function rowToQuote(row: {
   };
 }
 
-let _finnhub: FinnhubPriceProvider | null = null;
-function getFinnhub(): FinnhubPriceProvider | null {
-  if (!process.env.FINNHUB_API_KEY) return null;
-  if (!_finnhub) _finnhub = new FinnhubPriceProvider();
-  return _finnhub;
+/**
+ * Resolves active equity provider according to prompt 2 resolution order:
+ * Enabled DB config by priority -> environment variable -> null
+ */
+async function resolveEquityProviders(): Promise<{ name: string; provider: FinnhubPriceProvider | TwelveDataPriceProvider }[]> {
+  const providers: { name: string; provider: FinnhubPriceProvider | TwelveDataPriceProvider }[] = [];
+
+  // Check Finnhub (DB key -> env key)
+  const finnhubDbKey = await getDecryptedProviderKey('finnhub');
+  const finnhubKey = finnhubDbKey || process.env.FINNHUB_API_KEY;
+  if (finnhubKey) {
+    providers.push({ name: 'finnhub', provider: new FinnhubPriceProvider(finnhubKey) });
+  }
+
+  // Check Twelve Data (DB key -> env key)
+  const twelveDbKey = await getDecryptedProviderKey('twelvedata');
+  const twelveKey = twelveDbKey || process.env.TWELVE_DATA_API_KEY || process.env.TWELVEDATA_API_KEY;
+  if (twelveKey) {
+    providers.push({ name: 'twelvedata', provider: new TwelveDataPriceProvider(twelveKey) });
+  }
+
+  return providers;
 }
 
-let _coingecko: CoinGeckoPriceProvider | null = null;
-function getCoinGecko(): CoinGeckoPriceProvider {
-  if (!_coingecko) _coingecko = new CoinGeckoPriceProvider();
-  return _coingecko;
+async function resolveCryptoProvider(): Promise<CoinGeckoPriceProvider> {
+  const cgDbKey = await getDecryptedProviderKey('coingecko');
+  const cgKey = cgDbKey || process.env.COINGECKO_API_KEY;
+  return new CoinGeckoPriceProvider(cgKey || undefined);
 }
 
 /** Check whether a symbol represents cryptocurrency. */
@@ -100,10 +119,35 @@ export async function getPrice(
     }
   }
 
+  // Check if asset is known non-market (cash, real estate, fixed income)
+  const existingInst = await prisma.instrument.findFirst({
+    where: { symbol: upperSymbol },
+    select: { assetClass: true },
+  });
+
+  if (
+    existingInst &&
+    existingInst.assetClass !== 'equity' &&
+    existingInst.assetClass !== 'crypto'
+  ) {
+    if (cached) {
+      return rowToQuote({ ...cached, isStale: false }, category);
+    }
+    return {
+      symbol: upperSymbol,
+      price: '1.0000',
+      asOf: new Date(),
+      source: 'manual',
+      method: 'manual',
+      isStale: false,
+      freshnessLabel: 'Cached',
+    };
+  }
+
   // 2. Try live fetch
   if (isCrypto) {
     try {
-      const coingecko = getCoinGecko();
+      const coingecko = await resolveCryptoProvider();
       const quote = await coingecko.fetchQuote(upperSymbol);
       const instrument = await findOrCreateInstrument({
         symbol: upperSymbol,
@@ -116,15 +160,17 @@ export async function getPrice(
         asOf: quote.asOf,
         method: quote.method,
       });
+      await recordProviderResult('coingecko', true);
       return { ...quote, freshnessLabel: getFreshnessLabel(quote.asOf) };
-    } catch {
-      // Graceful fallback to cached if available
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Fetch failed';
+      await recordProviderResult('coingecko', false, msg);
     }
   } else {
-    const finnhub = getFinnhub();
-    if (finnhub) {
+    const equityProviders = await resolveEquityProviders();
+    for (const ep of equityProviders) {
       try {
-        const quote = await finnhub.fetchQuote(upperSymbol);
+        const quote = await ep.provider.fetchQuote(upperSymbol);
         const instrument = await findOrCreateInstrument({
           symbol: upperSymbol,
           assetClass: 'equity',
@@ -136,9 +182,12 @@ export async function getPrice(
           asOf: quote.asOf,
           method: quote.method,
         });
+        await recordProviderResult(ep.name, true);
         return { ...quote, freshnessLabel: getFreshnessLabel(quote.asOf) };
-      } catch {
-        // Fall through to cached fallback
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Fetch failed';
+        await recordProviderResult(ep.name, false, msg);
+        // Fall through to next provider
       }
     }
   }

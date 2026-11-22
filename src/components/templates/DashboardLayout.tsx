@@ -9,6 +9,7 @@ export interface DashboardLayoutProps {
   user?: { name: string; email: string };
   logoutAction?: (formData: FormData) => void | Promise<void>;
   lastUpdated?: Date | string;
+  isAdmin?: boolean;
   className?: string;
   children: React.ReactNode;
 }
@@ -17,7 +18,7 @@ export function DashboardLayout({
   currentPath,
   user,
   logoutAction,
-  lastUpdated,
+  isAdmin,
   className,
   children,
 }: DashboardLayoutProps) {
@@ -27,6 +28,7 @@ export function DashboardLayout({
         currentPath={currentPath}
         user={user}
         logoutAction={logoutAction}
+        isAdmin={isAdmin}
         className="hidden md:flex shrink-0"
       />
 
@@ -35,7 +37,7 @@ export function DashboardLayout({
           user={user}
           logoutAction={logoutAction}
           currentPath={currentPath}
-          lastUpdated={lastUpdated}
+          isAdmin={isAdmin}
         />
         <main className={cn('flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto', className)}>
           {children}

@@ -12,6 +12,7 @@ import { Input } from '@/components/atoms/Input';
 import { Select } from '@/components/atoms/Select';
 import { Alert } from '@/components/molecules/Alert';
 import { DisclaimerNotice } from '@/components/molecules/DisclaimerNotice';
+import { updateProfileNameAction, changePasswordAction } from '@/app/actions/settings';
 
 export interface SettingsClientProps {
   user: {
@@ -23,10 +24,91 @@ export interface SettingsClientProps {
 }
 
 export function SettingsClient({ user }: SettingsClientProps) {
+  const [name, setName] = useState(user.name || '');
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
+  const [nameFeedback, setNameFeedback] = useState<{
+    tone: 'success' | 'danger';
+    message: string;
+  } | null>(null);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordFeedback, setPasswordFeedback] = useState<{
+    tone: 'success' | 'danger';
+    message: string;
+  } | null>(null);
+
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [currency, setCurrency] = useState('USD');
   const [costBasisMethod, setCostBasisMethod] = useState('fifo');
   const [refreshInterval, setRefreshInterval] = useState('15');
+
+  const handleUpdateName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNameFeedback(null);
+    setIsUpdatingName(true);
+    try {
+      const res = await updateProfileNameAction({ name });
+      if (res.error) {
+        setNameFeedback({ tone: 'danger', message: res.error });
+      } else {
+        setNameFeedback({ tone: 'success', message: 'Profile name updated successfully.' });
+      }
+    } catch {
+      setNameFeedback({
+        tone: 'danger',
+        message: 'An unexpected error occurred while updating name.',
+      });
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordFeedback(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordFeedback({ tone: 'danger', message: 'New passwords do not match.' });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordFeedback({
+        tone: 'danger',
+        message: 'New password must be at least 8 characters.',
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await changePasswordAction({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      if (res.error) {
+        setPasswordFeedback({ tone: 'danger', message: res.error });
+      } else {
+        setPasswordFeedback({
+          tone: 'success',
+          message: res.message || 'Password changed successfully.',
+        });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch {
+      setPasswordFeedback({
+        tone: 'danger',
+        message: 'An unexpected error occurred while changing password.',
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,21 +134,102 @@ export function SettingsClient({ user }: SettingsClientProps) {
             <div>
               <Heading level="h3">User Profile</Heading>
               <Text variant="caption" tone="muted">
-                Your authenticated account credentials
+                Manage your profile details and authenticated account
               </Text>
             </div>
             <Badge tone="success">Active</Badge>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="Full Name">
-              <Input value={user.name || 'Demo User'} disabled readOnly />
+          {nameFeedback && (
+            <Alert tone={nameFeedback.tone} onDismiss={() => setNameFeedback(null)}>
+              {nameFeedback.message}
+            </Alert>
+          )}
+
+          <form onSubmit={handleUpdateName} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Full Name" required>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your full name"
+                  required
+                />
+              </FormField>
+
+              <FormField label="Email Address" hint="Email address cannot be changed">
+                <Input value={user.email} disabled readOnly />
+              </FormField>
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="primary" type="submit" disabled={isUpdatingName || !name.trim()}>
+                <Icon name="Save" size="sm" className="mr-1.5" />
+                {isUpdatingName ? 'Saving...' : 'Save Name'}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        {/* Security & Password Card */}
+        <div className="p-6 rounded-xl border border-border bg-surface shadow-xs space-y-4">
+          <div className="pb-4 border-b border-border">
+            <Heading level="h3">Security &amp; Password</Heading>
+            <Text variant="caption" tone="muted">
+              Change your password to keep your account secure
+            </Text>
+          </div>
+
+          {passwordFeedback && (
+            <Alert tone={passwordFeedback.tone} onDismiss={() => setPasswordFeedback(null)}>
+              {passwordFeedback.message}
+            </Alert>
+          )}
+
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <FormField label="Current Password" required>
+              <Input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter your current password"
+                required
+              />
             </FormField>
 
-            <FormField label="Email Address">
-              <Input value={user.email} disabled readOnly />
-            </FormField>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="New Password" hint="Must be at least 8 characters" required>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                  required
+                />
+              </FormField>
+
+              <FormField label="Confirm New Password" required>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                />
+              </FormField>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+              >
+                <Icon name="Lock" size="sm" className="mr-1.5" />
+                {isChangingPassword ? 'Updating...' : 'Change Password'}
+              </Button>
+            </div>
+          </form>
         </div>
 
         {/* Financial & Tax Accounting Preferences */}
@@ -165,4 +328,3 @@ export function SettingsClient({ user }: SettingsClientProps) {
     </PageLayout>
   );
 }
-

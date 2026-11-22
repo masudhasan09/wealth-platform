@@ -18,3 +18,4 @@ export * from './ConfirmDialog';
 export * from './Stepper';
 export * from './Tabs';
 export * from './LogoutButton';
+export * from './ProviderStatusCard';

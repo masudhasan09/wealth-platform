@@ -50,6 +50,7 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `ChartContainer` | Molecule | Card wrapper for Recharts visualizations | `title`, `subtitle`, `action`, `height` | AllocationChart, NetWorthChart |
 | `ConfirmDialog` | Molecule | Native accessible `<dialog>` confirmation modal | `open`, `title`, `description`, `onConfirm`, `onCancel` | VoidTransactionDialog, Deletes |
 | `Stepper` | Molecule | Multi-step progress indicator | `steps`, `currentStep` | CsvImportWizard |
+| `ProviderStatusCard` | Molecule | Market data source card with connection health status, priority badge, masked key preview, and action buttons | `provider`, `name`, `kind`, `requiresKey`, `isConfigured`, `keyMasked`, `enabled`, `priority`, `onEditKey`, `onRemoveKey`, `onToggleEnabled`, `onTestConnection` | ProviderList, Admin |
 
 ---
 
@@ -85,6 +86,9 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `CsvImportWizard` | Organism | 3-step CSV upload, validation, duplicate detection, and ledger commit wizard | `onCommit`, `existingTransactions` | ImportClient |
 | `RiskPanel` | Organism | Portfolio risk dashboard with diversification score (0-100), concentration bar chart, and deterministic rule insights | `riskData` | RiskClient |
 | `ReportExportPanel` | Organism | Audit-ready financial report generator with CSV downloads and print/PDF ReportLayout preview | `user`, `holdings`, `gainsSummary`, `netWorthTotal` | ReportsClient |
+| `ApiKeyForm` | Organism | Form modal for inputting and rotating secret API keys with encrypted storage | `provider`, `providerName`, `onSave`, `onCancel` | DataSourcesClient |
+| `ProviderList` | Organism | Responsive grid of provider status cards with connection testing and toggle actions | `providers`, `onEditKey`, `onRemoveKey`, `onToggleEnabled`, `onTestConnection` | DataSourcesClient |
+| `AuditLogTable` | Organism | Immutable security audit ledger table showing actor, action, target, timestamp, and metadata | `entries` | DataSourcesClient |
 | `Sidebar` | Organism | Desktop navigation drawer with links and user info | `currentPath`, `user` | DashboardLayout |
 | `Header` | Organism | Top application bar with search and freshness indicator | `lastUpdated`, `source`, `onSearch` | DashboardLayout |
 | `Navbar` | Organism | Top navigation bar with logo and action slots | `actions` | Marketing / alternative layouts |
@@ -100,3 +104,4 @@ This catalog tracks every shared component across the 5 atomic levels of WealthT
 | `DashboardLayout` | Template | Primary app chrome with sidebar, header, and footer | `currentPath`, `user`, `children` | All authenticated app pages |
 | `PageLayout` | Template | Interior page header with actions and breadcrumbs | `title`, `description`, `actions`, `children` | All app pages |
 | `ReportLayout` | Template | Print-friendly report layout with header and disclaimer | `title`, `generatedDate`, `user`, `children` | Report export pages |
+| `AdminLayout` | Template | Dedicated administrative chrome with security notice banner, sidebar, header, and strict isolation | `currentPath`, `user`, `logoutAction`, `children` | Admin pages (/admin/*) |

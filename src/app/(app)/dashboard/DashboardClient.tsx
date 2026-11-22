@@ -87,16 +87,10 @@ export function DashboardClient({
     Math.max(0, realEstateVal) +
     Math.max(0, totalCash);
 
-  // 2. Net Worth Trend Data (Ensure at least 2 points for smooth curve)
-  const trendData =
-    snapshots.length >= 2
-      ? snapshots
-      : [
-          { date: '30d ago', value: totalNetWorth * 0.94 },
-          { date: '15d ago', value: totalNetWorth * 0.97 },
-          { date: '7d ago', value: totalNetWorth * 0.99 },
-          { date: 'Today', value: totalNetWorth },
-        ];
+  // Net Worth Trend Data — only real recorded snapshots are plotted. A single
+  // snapshot renders as one point; with none, the chart shows today's valuation.
+  const trendData: SnapshotPoint[] =
+    snapshots.length > 0 ? snapshots : [{ date: 'Today', value: totalNetWorth }];
 
   return (
     <div className="space-y-8">

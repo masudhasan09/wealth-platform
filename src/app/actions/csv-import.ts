@@ -2,10 +2,15 @@
 
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db/client';
-import { findOrCreateInstrument } from '@/lib/db/instruments';
 import { CsvTransactionRow } from '@/lib/finance/csv-import';
 import { revalidatePath } from 'next/cache';
-import type { TransactionType } from '@prisma/client';
+import type { AssetClass, TransactionType } from '@prisma/client';
+
+/** Tickers that should be created as crypto rather than equity during import. */
+const CRYPTO_SYMBOLS = new Set([
+  'BTC', 'ETH', 'SOL', 'USDT', 'USDC', 'ADA', 'AVAX', 'DOT', 'LINK',
+  'MATIC', 'POL', 'DOGE', 'XRP', 'BNB',
+]);
 
 export async function importTransactionsAction(
   rows: CsvTransactionRow[]
@@ -77,19 +82,40 @@ export async function importTransactionsAction(
           const targetSymbol = (row.symbol || '').trim();
           let instrumentId: string;
 
+          // Resolved through `txDb` (never the global client) so every write in
+          // this import participates in the same transaction.
           if (targetSymbol) {
-            const inst = await findOrCreateInstrument({
-              symbol: targetSymbol,
+            const symbol = targetSymbol.toUpperCase().trim();
+            const existingInstrument = await txDb.instrument.findFirst({
+              where: { symbol },
+              select: { id: true },
             });
-            instrumentId = inst.id;
+
+            if (existingInstrument) {
+              instrumentId = existingInstrument.id;
+            } else {
+              const assetClass: AssetClass =
+                symbol === 'USD' ? 'cash' : CRYPTO_SYMBOLS.has(symbol) ? 'crypto' : 'equity';
+              const createdInstrument = await txDb.instrument.create({
+                data: { symbol, name: symbol, assetClass, currency: 'USD' },
+              });
+              instrumentId = createdInstrument.id;
+            }
           } else {
             // Default cash instrument
-            const cashInst = await findOrCreateInstrument({
-              symbol: 'USD',
-              name: 'US Dollar',
-              assetClass: 'cash',
+            const existingCash = await txDb.instrument.findFirst({
+              where: { symbol: 'USD', assetClass: 'cash' },
+              select: { id: true },
             });
-            instrumentId = cashInst.id;
+
+            if (existingCash) {
+              instrumentId = existingCash.id;
+            } else {
+              const createdCash = await txDb.instrument.create({
+                data: { symbol: 'USD', name: 'US Dollar Cash', assetClass: 'cash', currency: 'USD' },
+              });
+              instrumentId = createdCash.id;
+            }
           }
 
           // Insert Transaction
@@ -135,4 +161,3 @@ export async function importTransactionsAction(
     };
   }
 }
-

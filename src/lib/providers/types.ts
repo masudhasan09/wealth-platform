@@ -43,5 +43,10 @@ export interface PriceProvider {
    * should override this. Default falls back to sequential fetchQuote calls.
    */
   fetchQuotes?(symbols: string[]): Promise<PriceMap>;
+
+  /**
+   * Performs a lightweight test query to check API key validity and connectivity.
+   */
+  testConnection?(): Promise<{ ok: boolean; message: string }>;
 }
 
