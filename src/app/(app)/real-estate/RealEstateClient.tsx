@@ -387,10 +387,16 @@ export function RealEstateClient({ properties, accounts }: RealEstateClientProps
 
       {/* Add Property Modal */}
       {isAddPropertyOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-xl rounded-xl border border-border bg-surface p-6 shadow-xl space-y-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-property-dialog-title"
+          data-modal-open="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-md p-4"
+        >
+          <div className="w-full max-w-xl rounded-2xl border border-border bg-surface p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <Heading level="h3">Add New Real Estate Property</Heading>
+              <Heading id="add-property-dialog-title" level="h3">Add New Real Estate Property</Heading>
               <Button
                 variant="ghost"
                 size="sm"

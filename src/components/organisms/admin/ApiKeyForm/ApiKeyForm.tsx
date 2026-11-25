@@ -85,7 +85,7 @@ export function ApiKeyForm({
         <div className="flex justify-end gap-2 pt-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             size="sm"
             onClick={onCancel}
             disabled={isLoading}

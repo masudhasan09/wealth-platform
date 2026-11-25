@@ -53,4 +53,54 @@ describe('ReportExportPanel Organism', () => {
       screen.getByText(/For informational and educational purposes only/i)
     ).toBeInTheDocument();
   });
+
+  it('renders Risk & Diversification Report when initialReportType is risk', () => {
+    const mockRiskData = {
+      totalPortfolioValue: '10000.00',
+      topHoldingPct: '60.00',
+      topHoldingSymbol: 'BTC',
+      top5Pct: '100.00',
+      diversificationScore: 42,
+      diversificationRating: 'Low' as const,
+      estimatedAnnualVolatility: '45.00%',
+      assetClassCount: 2,
+      positionCount: 2,
+      topHoldings: [
+        {
+          instrumentId: 'inst-btc',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          assetClass: 'crypto',
+          value: '6000.00',
+          percentage: '60.00',
+        },
+      ],
+      assetClassBreakdown: [
+        { assetClass: 'crypto', value: '6000.00', percentage: '60.00' },
+      ],
+      deterministicInsights: [
+        {
+          id: 'insight-top-holding-high',
+          type: 'warning' as const,
+          title: 'High Single-Asset Risk',
+          description: 'BTC exceeds 35% of total portfolio.',
+        },
+      ],
+    };
+
+    render(
+      <ReportExportPanel
+        user={mockUser}
+        holdings={mockHoldings}
+        gainsSummary={mockGains}
+        netWorthTotal="10000.00"
+        riskData={mockRiskData}
+        initialReportType="risk"
+      />
+    );
+
+    expect(screen.getByText('Portfolio Risk & Diversification Report')).toBeInTheDocument();
+    expect(screen.getByText('42/100 (Low)')).toBeInTheDocument();
+    expect(screen.getByText('High Single-Asset Risk')).toBeInTheDocument();
+  });
 });

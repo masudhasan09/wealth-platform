@@ -35,7 +35,8 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay backdrop-blur-xs"
+      data-modal-open="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) {
           onCancel();

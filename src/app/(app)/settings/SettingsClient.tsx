@@ -12,6 +12,7 @@ import { Input } from '@/components/atoms/Input';
 import { Select } from '@/components/atoms/Select';
 import { Alert } from '@/components/molecules/Alert';
 import { DisclaimerNotice } from '@/components/molecules/DisclaimerNotice';
+import { ThemeToggle } from '@/components/molecules/ThemeToggle';
 import { updateProfileNameAction, changePasswordAction } from '@/app/actions/settings';
 
 export interface SettingsClientProps {
@@ -127,6 +128,19 @@ export function SettingsClient({ user }: SettingsClientProps) {
             Your portfolio display and tax accounting preferences have been updated.
           </Alert>
         )}
+
+        {/* Appearance & Theme Card */}
+        <div className="p-6 rounded-xl border border-border bg-surface shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <Heading level="h3">Appearance &amp; Theme</Heading>
+              <Text variant="caption" tone="muted">
+                Choose Light, Dark, or synchronize automatically with your operating system
+              </Text>
+            </div>
+            <ThemeToggle variant="settings" />
+          </div>
+        </div>
 
         {/* Profile Card */}
         <div className="p-6 rounded-xl border border-border bg-surface shadow-xs space-y-4">

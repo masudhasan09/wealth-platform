@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Icon } from '@/components/atoms/Icon';
 import { NavItem } from '@/components/molecules/NavItem';
 import { UserInfo } from '@/components/molecules/UserInfo';
 import { cn } from '@/lib/utils/cn';
@@ -11,21 +12,29 @@ export interface NavRoute {
   label: string;
   href: string;
   icon: string;
+  group?: 'Overview' | 'Ledger & Assets' | 'Analytics & Tax' | 'System';
 }
 
 export const MAIN_NAV_ROUTES: NavRoute[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
-  { label: 'Accounts', href: '/accounts', icon: 'Wallet' },
-  { label: 'Transactions', href: '/transactions', icon: 'ArrowLeftRight' },
-  { label: 'Holdings', href: '/holdings', icon: 'PieChart' },
-  { label: 'Net Worth', href: '/net-worth', icon: 'TrendingUp' },
-  { label: 'Market Prices', href: '/prices', icon: 'LineChart' },
-  { label: 'Fixed Income', href: '/fixed-income', icon: 'Landmark' },
-  { label: 'Real Estate', href: '/real-estate', icon: 'Building2' },
-  { label: 'Tax & Gains', href: '/gains', icon: 'Receipt' },
-  { label: 'Risk & Allocation', href: '/risk', icon: 'ShieldCheck' },
-  { label: 'Reports', href: '/reports', icon: 'FileText' },
-  { label: 'Settings', href: '/settings', icon: 'Settings' },
+  { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard', group: 'Overview' },
+  { label: 'Net Worth', href: '/net-worth', icon: 'TrendingUp', group: 'Overview' },
+  { label: 'Holdings', href: '/holdings', icon: 'PieChart', group: 'Overview' },
+  { label: 'Accounts', href: '/accounts', icon: 'Wallet', group: 'Ledger & Assets' },
+  { label: 'Transactions', href: '/transactions', icon: 'ArrowLeftRight', group: 'Ledger & Assets' },
+  { label: 'Market Prices', href: '/prices', icon: 'LineChart', group: 'Ledger & Assets' },
+  { label: 'Fixed Income', href: '/fixed-income', icon: 'Landmark', group: 'Ledger & Assets' },
+  { label: 'Real Estate', href: '/real-estate', icon: 'Building2', group: 'Ledger & Assets' },
+  { label: 'Tax & Gains', href: '/gains', icon: 'Receipt', group: 'Analytics & Tax' },
+  { label: 'Risk & Allocation', href: '/risk', icon: 'ShieldCheck', group: 'Analytics & Tax' },
+  { label: 'Reports', href: '/reports', icon: 'FileText', group: 'Analytics & Tax' },
+  { label: 'Settings', href: '/settings', icon: 'Settings', group: 'System' },
+];
+
+const NAV_GROUPS: Array<'Overview' | 'Ledger & Assets' | 'Analytics & Tax' | 'System'> = [
+  'Overview',
+  'Ledger & Assets',
+  'Analytics & Tax',
+  'System',
 ];
 
 export interface SidebarProps {
@@ -55,26 +64,30 @@ export function Sidebar({
         className
       )}
     >
-      <div className="flex flex-col gap-6 overflow-y-auto">
-        <Link href={adminOnly ? '/admin/data-sources' : '/dashboard'} className="flex items-center gap-2 px-2 py-1">
-          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground font-bold flex items-center justify-center text-base">
-            W
+      <div className="flex flex-col gap-5 overflow-y-auto pr-1">
+        <Link
+          href={adminOnly ? '/admin/data-sources' : '/dashboard'}
+          className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-surface-hover transition-colors"
+        >
+          <div className="h-9 w-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-xs shrink-0">
+            <Icon name="TrendingUp" size="sm" aria-hidden="true" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg tracking-tight text-text leading-tight">
-              WealthTrack
+          <div className="flex flex-col min-w-0">
+            <span className="font-bold text-sm tracking-tight text-text leading-tight truncate">
+              Multi-Asset Portfolio
             </span>
-            {adminOnly && (
-              <span className="text-xs font-semibold text-warning uppercase tracking-wider">
-                Admin Console
-              </span>
-            )}
+            <span className={cn(
+              'text-xs font-medium tracking-wide truncate',
+              adminOnly ? 'text-warning font-semibold uppercase' : 'text-text-muted'
+            )}>
+              {adminOnly ? 'Admin Console' : 'Tracking Platform'}
+            </span>
           </div>
         </Link>
 
         {adminOnly ? (
           <nav aria-label="Admin Navigation" className="flex flex-col gap-1">
-            <div className="px-3 pb-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+            <div className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted">
               Security &amp; Data
             </div>
             <NavItem
@@ -85,20 +98,30 @@ export function Sidebar({
             />
           </nav>
         ) : (
-          <nav aria-label="Main Navigation" className="flex flex-col gap-1">
-            {MAIN_NAV_ROUTES.map((route) => (
-              <NavItem
-                key={route.href}
-                href={route.href}
-                label={route.label}
-                icon={route.icon}
-                active={activePath === route.href || activePath.startsWith(`${route.href}/`)}
-              />
-            ))}
+          <nav aria-label="Main Navigation" className="flex flex-col gap-4">
+            {NAV_GROUPS.map((group) => {
+              const routes = MAIN_NAV_ROUTES.filter((r) => r.group === group);
+              return (
+                <div key={group} className="flex flex-col gap-0.5">
+                  <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    {group}
+                  </div>
+                  {routes.map((route) => (
+                    <NavItem
+                      key={route.href}
+                      href={route.href}
+                      label={route.label}
+                      icon={route.icon}
+                      active={activePath === route.href || activePath.startsWith(`${route.href}/`)}
+                    />
+                  ))}
+                </div>
+              );
+            })}
 
             {isAdmin && (
-              <div className="pt-4 mt-2 border-t border-border">
-                <div className="px-3 pb-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+              <div className="pt-3 border-t border-border flex flex-col gap-0.5">
+                <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-muted">
                   Admin Console
                 </div>
                 <NavItem
@@ -113,7 +136,7 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="border-t border-border pt-4">
+      <div className="border-t border-border pt-3.5 mt-2">
         <UserInfo
           name={user.name}
           email={user.email}

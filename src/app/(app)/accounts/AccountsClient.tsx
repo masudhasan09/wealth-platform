@@ -71,10 +71,16 @@ export function AccountsClient({ initialAccounts }: AccountsClientProps) {
       />
 
       {showAddModal && (
-        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-          <div className="bg-surface border border-border rounded-xl p-6 max-w-lg w-full shadow-2xl animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <Heading level="h3">Add New Account</Heading>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-account-dialog-title"
+          data-modal-open="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md"
+        >
+          <div className="bg-surface border border-border rounded-2xl p-6 max-w-lg w-full shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+              <Heading id="add-account-dialog-title" level="h3">Add New Account</Heading>
               <Button
                 variant="ghost"
                 size="sm"

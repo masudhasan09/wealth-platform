@@ -5,11 +5,27 @@ import { ReportsClient } from './ReportsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ReportsPage() {
+type ReportType = 'portfolio' | 'gains' | 'risk';
+
+function resolveReportType(raw?: string): ReportType {
+  if (raw === 'gains' || raw === 'risk' || raw === 'portfolio') {
+    return raw;
+  }
+  return 'portfolio';
+}
+
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ type?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) {
     redirect('/login');
   }
+
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const initialReportType = resolveReportType(resolvedParams?.type);
 
   const reportData = await getReportDataAction();
 
@@ -27,7 +43,8 @@ export default async function ReportsPage() {
       holdings={reportData.holdings}
       gainsSummary={reportData.gainsSummary}
       netWorthTotal={reportData.netWorthTotal}
+      riskData={reportData.riskData}
+      initialReportType={initialReportType}
     />
   );
 }
-

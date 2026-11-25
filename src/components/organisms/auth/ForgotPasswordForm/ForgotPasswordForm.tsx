@@ -83,7 +83,7 @@ export function ForgotPasswordForm({
             htmlFor="forgot-email"
             error={errors.email}
             required
-            hint="Enter the email associated with your WealthTrack account"
+            hint="Enter the email associated with your Multi-Asset Portfolio Tracking Platform account"
           >
             <Input
               id="forgot-email"

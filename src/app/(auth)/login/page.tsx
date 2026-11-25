@@ -19,7 +19,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push('/accounts');
+      router.push('/dashboard');
       router.refresh();
     }
   };

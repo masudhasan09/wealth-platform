@@ -2,16 +2,20 @@ import React from 'react';
 import { cn } from '@/lib/utils/cn';
 
 const variants = {
-  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active',
-  secondary: 'bg-surface-muted text-text hover:bg-surface-hover border border-border',
-  danger: 'bg-danger text-danger-foreground hover:bg-danger-hover active:bg-danger-hover',
-  ghost: 'bg-transparent text-text hover:bg-surface-muted',
+  primary:
+    'bg-primary text-primary-foreground border border-primary hover:bg-primary-hover hover:border-primary-hover active:bg-primary-active shadow-sm hover:shadow-md',
+  secondary:
+    'bg-surface text-text border border-border hover:bg-surface-hover hover:border-border-strong active:bg-surface-active shadow-2xs',
+  danger:
+    'bg-danger text-danger-foreground border border-danger hover:bg-danger-hover hover:border-danger-hover active:bg-danger-hover shadow-sm hover:shadow-md',
+  ghost:
+    'bg-transparent text-text-muted border border-transparent hover:text-text hover:bg-surface-muted active:bg-surface-active',
 } as const;
 
 const sizes = {
-  sm: 'h-control-sm px-3 text-xs',
-  md: 'h-control-md px-4 text-sm',
-  lg: 'h-control-lg px-6 text-base',
+  sm: 'h-control-sm px-3.5 text-xs rounded-lg',
+  md: 'h-control-md px-4.5 text-sm rounded-xl',
+  lg: 'h-control-lg px-6 text-base rounded-xl',
 } as const;
 
 export type ButtonVariant = keyof typeof variants;
@@ -35,7 +39,7 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center font-medium rounded-md transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none',
+        'inline-flex items-center justify-center gap-1.5 font-semibold tracking-tight transition-all duration-150 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none',
         variants[variant],
         sizes[size],
         className

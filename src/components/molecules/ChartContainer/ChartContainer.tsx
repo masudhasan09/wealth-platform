@@ -22,7 +22,7 @@ export function ChartContainer({
   return (
     <div
       className={cn(
-        'p-5 rounded-lg border border-border bg-surface shadow-sm flex flex-col',
+        'p-5 sm:p-6 rounded-xl border border-border bg-surface shadow-xs flex flex-col',
         className
       )}
     >
