@@ -146,7 +146,7 @@ export function AccountForm({
         {onCancel && (
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             onClick={onCancel}
             disabled={busy}
           >

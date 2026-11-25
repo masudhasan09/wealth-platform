@@ -108,10 +108,16 @@ export function FixedIncomeClient({
 
       {/* Add Bond Modal Dialog */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-surface rounded-xl border border-border shadow-xl max-w-2xl w-full p-6 max-h-full overflow-y-auto">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-bond-dialog-title"
+          data-modal-open="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md"
+        >
+          <div className="bg-surface rounded-2xl border border-border shadow-2xl max-w-2xl w-full p-6 max-h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
-              <Heading level="h3">Add Fixed Income Instrument</Heading>
+              <Heading id="add-bond-dialog-title" level="h3">Add Fixed Income Instrument</Heading>
               <Button
                 variant="ghost"
                 size="sm"

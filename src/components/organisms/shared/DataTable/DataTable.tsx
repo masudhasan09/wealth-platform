@@ -36,7 +36,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className={cn('rounded-lg border border-border bg-surface p-6', className)}>
+      <div className={cn('rounded-xl border border-border bg-surface p-6 shadow-xs', className)}>
         <EmptyState
           title={emptyTitle}
           description={emptyDescription}
@@ -47,11 +47,11 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn('w-full overflow-hidden rounded-lg border border-border bg-surface shadow-xs', className)}>
+    <div className={cn('w-full overflow-hidden rounded-xl border border-border bg-surface shadow-xs', className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="border-b border-border bg-surface-subtle">
+            <tr className="border-b border-border bg-surface-muted">
               {columns.map((col, idx) => {
                 const alignClass =
                   col.align === 'right'
@@ -79,7 +79,7 @@ export function DataTable<T>({
             {data.map((item, rowIdx) => (
               <tr
                 key={keyExtractor(item, rowIdx)}
-                className="transition-colors hover:bg-surface-subtle"
+                className="transition-colors hover:bg-surface-hover"
               >
                 {columns.map((col, colIdx) => {
                   const alignClass =
@@ -110,7 +110,7 @@ export function DataTable<T>({
         </table>
       </div>
       {footer && (
-        <div className="border-t border-border bg-surface-subtle px-4 py-3">
+        <div className="border-t border-border bg-surface-muted px-4 py-3">
           {footer}
         </div>
       )}

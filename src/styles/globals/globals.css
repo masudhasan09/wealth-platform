@@ -1,18 +1,19 @@
 /* ==========================================================================
-   WealthTrack Global Styles
+   Multi-Asset Portfolio Tracking Platform Global Styles — Obsidian & Emerald
    Tailwind v4 — CSS-first configuration
    ========================================================================== */
 
 @import "tailwindcss";
 
 /* --------------------------------------------------------------------------
-   Theme — semantic CSS variables injected by root layout via themeToCss.ts
+   Theme — semantic CSS variables injected by root layout via buildAdaptiveThemeCss
    @theme maps Tailwind utility names to those variables.
    -------------------------------------------------------------------------- */
 @theme inline {
   /* Colors */
   --color-background:         var(--background);
   --color-surface:            var(--surface);
+  --color-surface-subtle:     var(--surface-muted);
   --color-surface-muted:      var(--surface-muted);
   --color-surface-hover:      var(--surface-hover);
   --color-surface-active:     var(--surface-active);
@@ -72,10 +73,29 @@
 }
 
 /* --------------------------------------------------------------------------
-   Base reset
+   Base reset & modern browser UI integration
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+:root {
+  accent-color: var(--primary);
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 html {
@@ -94,6 +114,12 @@ body {
   min-height: 100vh;
 }
 
+/* Crisp aligned financial numerals */
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 /* --------------------------------------------------------------------------
    Focus ring — token-based, visible for keyboard users
    -------------------------------------------------------------------------- */
@@ -102,33 +128,66 @@ body {
   outline-offset: 2px;
 }
 
-/* Remove focus ring for mouse users */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Forced Colors / High Contrast Mode support */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    border: 1px solid ButtonBorder;
+  }
+}
+
+/* Modal & dialog scroll containment (per modern-web-guidance dialog rules) */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Hide sticky app header cleanly whenever any modal form or confirmation dialog is open */
+body:has([role="dialog"][aria-modal="true"]) nav[aria-label="Main App Header"],
+body:has([role="alertdialog"][aria-modal="true"]) nav[aria-label="Main App Header"],
+body:has([data-modal-open="true"]) nav[aria-label="Main App Header"],
+body:has(dialog[open]) nav[aria-label="Main App Header"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------
    Print rules
    -------------------------------------------------------------------------- */
 @media print {
-  /* Hide interactive chrome */
   nav, aside, .no-print {
     display: none !important;
   }
 
-  /* Force white background for print */
   body {
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
   }
 
-  /* Disclaimer always visible in print */
-  .disclaimer {
-    display: block !important;
+  .card, .surface {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
   }
 
-  /* Page breaks */
-  .page-break-before { page-break-before: always; }
-  .page-break-after  { page-break-after: always; }
-  .no-page-break     { page-break-inside: avoid; }
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+  }
 }

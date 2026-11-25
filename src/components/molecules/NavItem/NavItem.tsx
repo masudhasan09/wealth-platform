@@ -26,10 +26,10 @@ export function NavItem({
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors select-none',
+        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all select-none',
         active
-          ? 'bg-primary-muted text-primary'
-          : 'text-text-muted hover:bg-surface-hover hover:text-text',
+          ? 'bg-primary-muted text-primary font-semibold shadow-2xs'
+          : 'font-medium text-text-muted hover:bg-surface-hover hover:text-text',
         className
       )}
     >

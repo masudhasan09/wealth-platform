@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { PageLayout } from '@/components/templates/PageLayout';
 import { RiskPanel } from '@/components/organisms/risk/RiskPanel';
 import { Button } from '@/components/atoms/Button';
@@ -17,16 +18,15 @@ export function RiskClient({ riskData }: RiskClientProps) {
       title="Portfolio Risk & Diversification"
       description="Evaluates single-holding concentration, asset class allocation, and portfolio resilience using deterministic diagnostics."
       actions={
-        <a href="/reports">
+        <Link href="/reports?type=risk">
           <Button variant="secondary" size="sm">
-            <Icon name="FileText" size="sm" className="mr-1.5" />
+            <Icon name="FileText" size="sm" aria-hidden="true" />
             Generate Risk Report
           </Button>
-        </a>
+        </Link>
       }
     >
       <RiskPanel riskData={riskData} />
     </PageLayout>
   );
 }
-

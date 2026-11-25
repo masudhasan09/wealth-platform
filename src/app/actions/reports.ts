@@ -4,6 +4,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/db/client';
 import { getAccountsByUserId, getTransactionsByUserId } from '@/lib/db';
 import { computeHoldings } from '@/lib/finance/holdings';
+import { computePortfolioRisk } from '@/lib/finance/risk';
 import { getPrices } from '@/lib/services/price.service';
 import { getUserTaxLotsAndGains } from '@/lib/db/tax-lots';
 import { getNetWorthAction } from './net-worth';
@@ -91,6 +92,18 @@ export async function getReportDataAction() {
     const netWorthTotal =
       'result' in netWorthData ? netWorthData.result.total : '0.00';
 
+    const riskPositions =
+      'positions' in netWorthData
+        ? netWorthData.positions.map((p) => ({
+            instrumentId: p.instrumentId,
+            symbol: p.symbol || 'Unknown',
+            name: p.symbol || 'Unknown',
+            assetClass: p.assetClass,
+            value: p.marketValue || '0',
+          }))
+        : [];
+    const riskData = computePortfolioRisk(riskPositions);
+
     return {
       user: {
         name: user?.name || 'Account Holder',
@@ -99,6 +112,7 @@ export async function getReportDataAction() {
       holdings,
       gainsSummary: taxLotsData.realizedReport,
       netWorthTotal,
+      riskData,
     };
   } catch (err: unknown) {
     return { error: err instanceof Error ? err.message : 'Failed to compile report data.' };
